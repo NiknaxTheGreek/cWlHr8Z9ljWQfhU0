@@ -1,0 +1,30 @@
+{
+  "model": "NLPL model 40 English CoNLL17 Word2Vec",
+  "model_id": 40,
+  "repository_release": 20,
+  "model_url": "https://vectors.nlpl.eu/repository/20/40.zip",
+  "expected_vocab": 4027169,
+  "dimension": 100,
+  "preprocessing_hash": "0d682eca9074baca39504f76956a9b99575a8e475bee06b2940d74240634a2e6",
+  "required_token_set_hash": "bfdb2c9da8db5c10fdac81f45ce22adcf0f4c94310502662686748318291cfa4",
+  "required_token_count": 110,
+  "cached_token_count": 108,
+  "oov_required_tokens": [
+    "entry-level",
+    "team-focused"
+  ],
+  "cache_npz_sha256": "e8c3b98d1c0a91c58214ad69dc3c0fd6c5a1c33e65e91af3b6f450516b24359b",
+  "provenance": {
+    "method": "recovered_validated_legacy_required-token cache; subset rebuilt under Gate2 preprocessing",
+    "official_model_url": "https://vectors.nlpl.eu/repository/20/40.zip",
+    "official_model_id": 40,
+    "official_repository_release": 20,
+    "legacy_generator_path": "step7.py",
+    "legacy_generator_git_blob_sha": "7d13b0b92af47dcc6319c5ab80188922a484f76c",
+    "legacy_generator_header_check": "vocab=4027169, dim=100",
+    "legacy_workflow_artifact_zip_sha256": "e2efcdbff4862db4088468de4f3cd5079c5a8dac1ab8caf908b0efa4059fd6b4",
+    "legacy_token_vector_csv_sha256": "3bf58f006067fbb6214db607c1d3bec88d7cddf9e6bddfc0cbf55c818699f2cf",
+    "full_source_archive_sha256": null,
+    "full_source_archive_hash_note": "Not retained by legacy workflow; official persistent model identity + legacy header validation + recovered vector-artifact hashes form the promotion provenance chain."
+  }
+}
