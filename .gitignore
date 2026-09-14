@@ -1,0 +1,17 @@
+.ipynb_checkpoints/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+.env
+.DS_Store
+40.zip
+model.bin
+model.txt
+*.tmp
+*.temp
+outputs/.scratch/
+cache/.scratch/
