@@ -25,7 +25,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
       - name: Run full test suite
-        run: pytest -q
+        run: python -m pytest -q
       - name: Validate binary cache and Gate-2 control wrappers
         run: |
           python - <<'PY'
