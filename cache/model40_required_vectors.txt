@@ -1,0 +1,1 @@
+Binary NPZ cache is generated and validated locally in Phase 7. This placeholder will be replaced by the binary NPZ through the Git data API in the same construction phase.
