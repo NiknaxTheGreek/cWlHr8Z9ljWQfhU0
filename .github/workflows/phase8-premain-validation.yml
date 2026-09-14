@@ -1,0 +1,89 @@
+name: Phase 8 pre-main validation
+
+on:
+  push:
+    branches: [phase6-construction]
+    paths:
+      - '.github/workflows/phase8-premain-validation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase6-construction
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install locked environment
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+      - name: Run full test suite
+        run: pytest -q
+      - name: Validate binary cache and Gate-2 control wrappers
+        run: |
+          python - <<'PY'
+          import base64, gzip, hashlib, json
+          from pathlib import Path
+          import numpy as np
+
+          cache = Path('cache/model40_required_vectors.npz')
+          meta = json.loads(Path('cache/model40_cache_metadata.json').read_text())
+          actual = hashlib.sha256(cache.read_bytes()).hexdigest()
+          assert actual == meta['cache_npz_sha256'], (actual, meta['cache_npz_sha256'])
+          z = np.load(cache, allow_pickle=False)
+          assert set(z.files) == {'tokens', 'vectors'}
+          assert z['tokens'].shape == (108,)
+          assert z['vectors'].shape == (108, 100)
+          assert z['vectors'].dtype == np.float32
+          assert np.isfinite(z['vectors']).all()
+          assert meta['required_token_count'] == 110
+          assert meta['cached_token_count'] == 108
+          assert meta['oov_required_tokens'] == ['entry-level', 'team-focused']
+
+          for path, expected_sha, expected_cells in [
+              ('project_control/cell_map.json', '5b261ffcb3d4d87afa19cd1830523c5957e44c9737322776532095466c13733b', 102),
+              ('project_control/dependency_graph.json', '0b47fd598e3232b948edef79e2a4ac75df2e38f41d2b1d16113cc22a11cea8f7', 102),
+          ]:
+              wrapper = json.loads(Path(path).read_text())
+              raw = gzip.decompress(base64.b64decode(wrapper['payload']))
+              assert hashlib.sha256(raw).hexdigest() == expected_sha
+              decoded = json.loads(raw)
+              assert wrapper['cell_count'] == expected_cells
+              if path.endswith('cell_map.json'):
+                  assert len(decoded['cells']) == 102
+                  assert len({c['cell_id'] for c in decoded['cells']}) == 102
+                  assert len({c['section_id'] for c in decoded['cells']}) == 15
+              else:
+                  assert decoded['cell_count'] == 102
+                  assert len(decoded['nodes']) == 102
+          print('CACHE_AND_CONTROL_WRAPPERS=PASS')
+          print('CACHE_SHA256=' + actual)
+          PY
+      - name: Execute audit notebook cleanly
+        run: |
+          jupyter nbconvert \
+            --to notebook \
+            --execute 00_Project_Audit_and_Setup.ipynb \
+            --ExecutePreprocessor.timeout=180 \
+            --output /tmp/00_Project_Audit_and_Setup.executed.ipynb
+          python - <<'PY'
+          import json
+          p='/tmp/00_Project_Audit_and_Setup.executed.ipynb'
+          nb=json.load(open(p))
+          errors=[]
+          for cell in nb.get('cells',[]):
+              for out in cell.get('outputs',[]):
+                  if out.get('output_type') == 'error':
+                      errors.append(out)
+          assert not errors, errors
+          print('AUDIT_NOTEBOOK_EXECUTION=PASS')
+          PY
+      - name: Confirm validation does not mutate repository
+        run: test -z "$(git status --porcelain)"
