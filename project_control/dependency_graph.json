@@ -1,0 +1,31 @@
+{
+  "graph_id": "TARGET_CELL_DEPENDENCY_GRAPH_V2_GATE2_RECONCILED_INDEX",
+  "status": "SECTION_AND_INVALIDATION_INDEX; FULL_CELL_GRAPH_FROZEN_PHASE5",
+  "full_reconciled_source_sha256": "0b47fd598e3232b948edef79e2a4ac75df2e38f41d2b1d16113cc22a11cea8f7",
+  "notebook": "01_Potential_Talents_Main.ipynb",
+  "cell_count": 102,
+  "section_count": 15,
+  "section_flow": ["S01","S02","S03","S04","S05","S06","S07","S08","S09","S10","S11","S12","S13","S14","S15"],
+  "cross_section_dependencies": {
+    "S05": ["S02 configuration","S04 clean_50"],
+    "S06": ["S03 manual-label appendix object","S05 HR rule audit"],
+    "S07": ["S02 config","S05 HR34","validated Model40 cache"],
+    "S08": ["S07 embeddings and target"],
+    "S09": ["S02 seed/config","S08 model data"],
+    "S10": ["S07 W","S09 Ridge repeated-CV evidence"],
+    "S11": ["S08 model data","S09 production MSE tuning contract","S05 HR34 identity"],
+    "S12": ["S11 baseline freeze","S07 target","explicit MANAGEMENT_TOP17_ORDER"],
+    "S13": ["S12 depth states","S09 repeated-CV architecture"],
+    "S14": ["S11 baseline","S13 feedback summary/sensitivity","S09/S10 model evidence"],
+    "S15": ["all validated release objects","documentation evidence ledger","two clean runs","fresh-clone result"]
+  },
+  "invalidation_roots": {
+    "raw_data_hash_or_cleaning_rule_change": "invalidate S03 onward",
+    "hr_rules_or_H_mapping_change": "invalidate S05 onward",
+    "embedding_cache_preprocessing_or_query_change": "invalidate S07 onward",
+    "model_cv_or_alpha_grid_change": "invalidate S09 onward",
+    "MANAGEMENT_TOP17_ORDER_change": "invalidate S12 onward",
+    "presentation_only_change": "invalidate only affected presentation cells and S15 release validation"
+  },
+  "construction_guard": "Replace this index with the full reconciled cell-level graph before main-notebook construction."
+}

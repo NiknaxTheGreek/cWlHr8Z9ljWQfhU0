@@ -1,0 +1,27 @@
+{
+  "notebook": "01_Potential_Talents_Main.ipynb",
+  "representation": "construction-index-v1",
+  "status": "FULL_GATE2_CELL_SPEC_FROZEN_AND_MUST_BE_PROMOTED_BEFORE_MAIN_NOTEBOOK_BUILD",
+  "full_reconciled_source_sha256": "5b261ffcb3d4d87afa19cd1830523c5957e44c9737322776532095466c13733b",
+  "section_count": 15,
+  "cell_count": 102,
+  "sections": [
+    {"id":"S01","title":"Overview / execution contract","cells":4,"range":"S01-C01..S01-C04"},
+    {"id":"S02","title":"Environment / config / reproducibility","cells":7,"range":"S02-C01..S02-C07","checkpoint":"CP1_ENV_READY"},
+    {"id":"S03","title":"Data loading / source validation","cells":7,"range":"S03-C01..S03-C07","checkpoint":"CP2_SOURCE_VALIDATED"},
+    {"id":"S04","title":"Cleaning / dedup / population / focused EDA","cells":8,"range":"S04-C01..S04-C08","checkpoint":"CP3_POPULATION_50_VALIDATED"},
+    {"id":"S05","title":"HR relevance / HR34","cells":7,"range":"S05-C01..S05-C07","checkpoint":"CP4_HR34_VALIDATED"},
+    {"id":"S06","title":"Historical manual-label appendix","cells":4,"range":"S06-C01..S06-C04","checkpoint":"CP5_MANUAL_APPENDIX_ISOLATED"},
+    {"id":"S07","title":"Embeddings / query similarity / target","cells":9,"range":"S07-C01..S07-C09","checkpoint":"CP6_TARGET_VALIDATED"},
+    {"id":"S08","title":"Canonical modelling dataset","cells":4,"range":"S08-C01..S08-C04","checkpoint":"CP7_MODEL_DATA_FROZEN"},
+    {"id":"S09","title":"Nested repeated CV / ranking diagnostics","cells":12,"range":"S09-C01..S09-C12","checkpoint":"CP8_CV_VALIDATED"},
+    {"id":"S10","title":"W-only baseline","cells":4,"range":"S10-C01..S10-C04","checkpoint":"CP9_W_BASELINE_VALIDATED"},
+    {"id":"S11","title":"Full-data baseline / frozen ranking","cells":6,"range":"S11-C01..S11-C06","checkpoint":"CP10_BASELINE_FROZEN"},
+    {"id":"S12","title":"Management feedback","cells":10,"range":"S12-C01..S12-C10","checkpoint":"CP11_FEEDBACK_EXECUTED"},
+    {"id":"S13","title":"Cross-depth sensitivity / effort","cells":5,"range":"S13-C01..S13-C05","checkpoint":"CP12_SENSITIVITY_VALIDATED"},
+    {"id":"S14","title":"Final ranking / business interpretation / limitations","cells":6,"range":"S14-C01..S14-C06","checkpoint":"CP13_EVIDENCE_VALIDATED"},
+    {"id":"S15","title":"Reproducibility / final invariant health check","cells":9,"range":"S15-C01..S15-C09","checkpoint":"CP14_REVIEWER_READY"}
+  ],
+  "heavy_groups": ["G09_CV_HEAVY","G12_FEEDBACK_HEAVY","G13_SENS_HEAVY"],
+  "construction_guard": "Do not construct 01_Potential_Talents_Main.ipynb until this index is replaced with the complete Gate2 reconciled 102-cell specification whose SHA256 is recorded above."
+}

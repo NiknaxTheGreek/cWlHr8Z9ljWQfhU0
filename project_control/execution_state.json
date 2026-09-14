@@ -1,25 +1,41 @@
 {
-  "state_version": "1.0",
+  "state_version": "1.1",
   "branch": "phase6-construction",
   "construction_gate": "PASSED",
   "mode": "development",
-  "current_checkpoint": "CP0_REPO_AUDITED",
+  "current_checkpoint": "CP1_ENV_READY",
   "stage_states": {
     "phase_1_repository_audit": "VALIDATED",
     "phase_2_target_design": "VALIDATED",
     "phase_3_planning_registries": "VALIDATED",
     "phase_4_main_notebook_design": "VALIDATED",
     "phase_5_gate2_reconciliation": "VALIDATED",
-    "phase_6_foundation": "RUNNING"
+    "phase_6_foundation": "VALIDATED",
+    "audit_block_1_repository_inventory": "CONSTRUCTED",
+    "audit_block_2_current_state_assessment": "CONSTRUCTED",
+    "audit_block_3_target_blueprint": "CONSTRUCTED",
+    "audit_block_4_migration_plan": "CONSTRUCTED",
+    "audit_block_5_environment_verification": "CONSTRUCTED",
+    "audit_block_6_data_external_resource": "NOT_STARTED",
+    "audit_block_7_helper_rule_test_prototyping": "PARTIALLY_PROMOTED",
+    "audit_block_8_embedding_cache_verification": "NOT_STARTED",
+    "audit_block_9_promotion_readiness": "NOT_STARTED"
   },
-  "cell_states": [],
-  "object_hashes": {},
-  "artifact_hashes": {},
-  "timings": {},
-  "diagnostics": [],
-  "warnings": [],
+  "validation_evidence": {
+    "foundation_test_run": "16 passed",
+    "audit_notebook_block_count": 9,
+    "requirements_lock_entries_including_comments": 101,
+    "raw_candidate_source": "restored from historical blob 8a593ad8a86666a6d17b718eae0c11d0b4b33c31",
+    "manual_label_source": "restored from historical blob 35054e4017313e4dd2a6abcfcf5800486d3f5c7c"
+  },
+  "warnings": [
+    "Full 102-cell map and full cell-level dependency graph are frozen by Phase5 hashes but their compact construction indexes are committed first; full promotion is mandatory before main-notebook construction."
+  ],
   "deviations": [],
   "stale_objects": [],
   "recovery_actions": [],
-  "handoffs": []
+  "handoffs": [
+    "Next: audit Block 6 raw/resource validation and Block 8 Model40 compact-cache construction.",
+    "Do not delete legacy Step7/Step8 files until replacement validation permissions are satisfied."
+  ]
 }
