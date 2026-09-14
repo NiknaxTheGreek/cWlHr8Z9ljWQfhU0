@@ -1,9 +1,9 @@
 {
-  "state_version": "1.1",
+  "state_version": "1.2",
   "branch": "phase6-construction",
   "construction_gate": "PASSED",
   "mode": "development",
-  "current_checkpoint": "CP1_ENV_READY",
+  "current_checkpoint": "AUDIT_CP8_CACHE_VALIDATED",
   "stage_states": {
     "phase_1_repository_audit": "VALIDATED",
     "phase_2_target_design": "VALIDATED",
@@ -11,31 +11,46 @@
     "phase_4_main_notebook_design": "VALIDATED",
     "phase_5_gate2_reconciliation": "VALIDATED",
     "phase_6_foundation": "VALIDATED",
+    "phase_7_data_rule_cache_validation": "VALIDATED",
     "audit_block_1_repository_inventory": "CONSTRUCTED",
     "audit_block_2_current_state_assessment": "CONSTRUCTED",
     "audit_block_3_target_blueprint": "CONSTRUCTED",
     "audit_block_4_migration_plan": "CONSTRUCTED",
     "audit_block_5_environment_verification": "CONSTRUCTED",
-    "audit_block_6_data_external_resource": "NOT_STARTED",
-    "audit_block_7_helper_rule_test_prototyping": "PARTIALLY_PROMOTED",
-    "audit_block_8_embedding_cache_verification": "NOT_STARTED",
-    "audit_block_9_promotion_readiness": "NOT_STARTED"
+    "audit_block_6_data_external_resource": "VALIDATED",
+    "audit_block_7_helper_rule_test_prototyping": "VALIDATED",
+    "audit_block_8_embedding_cache_verification": "VALIDATED",
+    "audit_block_9_promotion_readiness": "CONSTRUCTED_NOT_PASSED"
   },
   "validation_evidence": {
-    "foundation_test_run": "16 passed",
+    "promoted_test_run": "19 passed",
+    "audit_notebook_clean_execution": "PASS",
     "audit_notebook_block_count": 9,
-    "requirements_lock_entries_including_comments": 101,
-    "raw_candidate_source": "restored from historical blob 8a593ad8a86666a6d17b718eae0c11d0b4b33c31",
-    "manual_label_source": "restored from historical blob 35054e4017313e4dd2a6abcfcf5800486d3f5c7c"
+    "population_path": "104 -> 52 -> remove 2 -> normalized dedup 50 -> HR34",
+    "excluded_ids": [75, 103],
+    "hr34_count": 34,
+    "manual_label_firewall": "PASS",
+    "raw_sha256": "ca989e05e0006dee860265a6e2cac1321977a28b3ff73526848cdfe012dfcf46",
+    "manual_label_sha256": "ecedd939423c9563ca6d9fb5dce6a3f0445b326f6d0b72c0470c97d188612abc",
+    "cache_npz_sha256": "e8c3b98d1c0a91c58214ad69dc3c0fd6c5a1c33e65e91af3b6f450516b24359b",
+    "required_tokens": 110,
+    "cached_tokens": 108,
+    "oov_required_tokens": ["entry-level", "team-focused"],
+    "candidate_embedding_shape": [34, 100],
+    "query_embedding_shape": [2, 100],
+    "candidate_min_coverage": 0.8888888888888888,
+    "query_coverages": [1.0, 1.0]
   },
   "warnings": [
-    "Full 102-cell map and full cell-level dependency graph are frozen by Phase5 hashes but their compact construction indexes are committed first; full promotion is mandatory before main-notebook construction."
+    "The legacy workflow did not retain the full Model40 archive SHA-256; cache metadata records this explicitly and preserves official model identity plus recovered-artifact provenance hashes.",
+    "Main notebook construction remains blocked until src/modeling.py, src/feedback.py and paired tests are promoted."
   ],
   "deviations": [],
   "stale_objects": [],
   "recovery_actions": [],
   "handoffs": [
-    "Next: audit Block 6 raw/resource validation and Block 8 Model40 compact-cache construction.",
-    "Do not delete legacy Step7/Step8 files until replacement validation permissions are satisfied."
+    "Next: promote modeling and feedback modules with paired tests.",
+    "Then rerun audit Block 9 and authorize main-notebook construction only if the preconstruction gate passes.",
+    "Legacy Step7/Step8 scaffold deletion remains deferred until the remaining modeling replacement validates."
   ]
 }
