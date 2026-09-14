@@ -47,12 +47,17 @@ jobs:
           assert meta['cached_token_count'] == 108
           assert meta['oov_required_tokens'] == ['entry-level', 'team-focused']
 
+          def decode_payload(text):
+              text = ''.join(str(text).split())
+              text += '=' * (-len(text) % 4)
+              return gzip.decompress(base64.b64decode(text, validate=True))
+
           for path, expected_sha, expected_cells in [
               ('project_control/cell_map.json', '5b261ffcb3d4d87afa19cd1830523c5957e44c9737322776532095466c13733b', 102),
               ('project_control/dependency_graph.json', '0b47fd598e3232b948edef79e2a4ac75df2e38f41d2b1d16113cc22a11cea8f7', 102),
           ]:
               wrapper = json.loads(Path(path).read_text())
-              raw = gzip.decompress(base64.b64decode(wrapper['payload']))
+              raw = decode_payload(wrapper['payload'])
               assert hashlib.sha256(raw).hexdigest() == expected_sha
               decoded = json.loads(raw)
               assert wrapper['cell_count'] == expected_cells
