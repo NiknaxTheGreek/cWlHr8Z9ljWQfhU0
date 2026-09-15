@@ -5,6 +5,15 @@ on:
     branches: [phase6-construction]
     paths:
       - '.github/workflows/phase8-premain-validation.yml'
+      - 'project_control/cell_map.json'
+      - 'project_control/dependency_graph.json'
+      - 'cache/model40_required_vectors.npz'
+      - 'cache/model40_cache_metadata.json'
+      - 'src/**'
+      - 'tests/**'
+      - '00_Project_Audit_and_Setup.ipynb'
+      - 'requirements.txt'
+      - 'requirements-lock.txt'
 
 permissions:
   contents: read
@@ -15,8 +24,6 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: phase6-construction
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -26,7 +33,7 @@ jobs:
           python -m pip install -r requirements.txt
       - name: Run full test suite
         run: python -m pytest -q
-      - name: Validate binary cache and Gate-2 control wrappers
+      - name: Validate binary cache and Gate-2 controls
         run: |
           python - <<'PY'
           import base64, gzip, hashlib, json
@@ -47,28 +54,31 @@ jobs:
           assert meta['cached_token_count'] == 108
           assert meta['oov_required_tokens'] == ['entry-level', 'team-focused']
 
-          def decode_payload(text):
-              text = ''.join(str(text).split())
-              text += '=' * (-len(text) % 4)
-              return gzip.decompress(base64.b64decode(text, validate=True))
+          expected = {
+              'project_control/cell_map.json': ('5b261ffcb3d4d87afa19cd1830523c5957e44c9737322776532095466c13733b', 'cell_map'),
+              'project_control/dependency_graph.json': ('0b47fd598e3232b948edef79e2a4ac75df2e38f41d2b1d16113cc22a11cea8f7', 'dependency_graph'),
+          }
 
-          for path, expected_sha, expected_cells in [
-              ('project_control/cell_map.json', '5b261ffcb3d4d87afa19cd1830523c5957e44c9737322776532095466c13733b', 102),
-              ('project_control/dependency_graph.json', '0b47fd598e3232b948edef79e2a4ac75df2e38f41d2b1d16113cc22a11cea8f7', 102),
-          ]:
+          for path, (locked_sha, kind) in expected.items():
               wrapper = json.loads(Path(path).read_text())
-              raw = decode_payload(wrapper['payload'])
-              assert hashlib.sha256(raw).hexdigest() == expected_sha
+              assert wrapper['decoded_sha256'] == locked_sha
+              payload = ''.join(str(wrapper['payload']).split())
+              payload += '=' * (-len(payload) % 4)
+              raw = gzip.decompress(base64.b64decode(payload, validate=True))
+              assert hashlib.sha256(raw).hexdigest() == locked_sha
               decoded = json.loads(raw)
-              assert wrapper['cell_count'] == expected_cells
-              if path.endswith('cell_map.json'):
+              assert wrapper['cell_count'] == 102
+              assert wrapper['section_count'] == 15
+              if kind == 'cell_map':
                   assert len(decoded['cells']) == 102
                   assert len({c['cell_id'] for c in decoded['cells']}) == 102
                   assert len({c['section_id'] for c in decoded['cells']}) == 15
               else:
                   assert decoded['cell_count'] == 102
                   assert len(decoded['nodes']) == 102
-          print('CACHE_AND_CONTROL_WRAPPERS=PASS')
+                  assert decoded['section_count'] == 15
+
+          print('CACHE_AND_GATE2_CONTROLS=PASS')
           print('CACHE_SHA256=' + actual)
           PY
       - name: Execute audit notebook cleanly
