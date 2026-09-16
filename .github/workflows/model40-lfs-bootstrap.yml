@@ -1,0 +1,86 @@
+name: Model 40 LFS bootstrap
+
+on:
+  push:
+    branches: [phase6-construction]
+    paths:
+      - '.github/workflows/model40-lfs-bootstrap.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  add-model40-binary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Check out construction branch
+        uses: actions/checkout@v4
+        with:
+          ref: phase6-construction
+          fetch-depth: 0
+          lfs: false
+
+      - name: Install Git LFS
+        run: |
+          git lfs install
+          git lfs version
+
+      - name: Download official NLPL Model 40 archive
+        run: |
+          curl -L --fail --retry 5 --retry-delay 10 \
+            -o /tmp/40.zip \
+            https://vectors.nlpl.eu/repository/20/40.zip
+          ls -lh /tmp/40.zip
+
+      - name: Extract only model.bin
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import os
+          import zipfile
+
+          archive = Path('/tmp/40.zip')
+          target = Path('models/model.bin')
+          target.parent.mkdir(parents=True, exist_ok=True)
+
+          with zipfile.ZipFile(archive) as zf:
+              matches = [n for n in zf.namelist() if n.rstrip('/').endswith('model.bin')]
+              if len(matches) != 1:
+                  raise RuntimeError(f'Expected exactly one model.bin, found: {matches}')
+              member = matches[0]
+              with zf.open(member) as src, target.open('wb') as dst:
+                  while True:
+                      chunk = src.read(8 * 1024 * 1024)
+                      if not chunk:
+                          break
+                      dst.write(chunk)
+
+          expected_size = 1_651_062_031
+          actual_size = target.stat().st_size
+          if actual_size != expected_size:
+              raise RuntimeError(f'Unexpected model.bin size: {actual_size} != {expected_size}')
+
+          with target.open('rb') as fh:
+              header = fh.readline().decode('utf-8').strip()
+          if header != '4027169 100':
+              raise RuntimeError(f'Unexpected Word2Vec header: {header!r}')
+
+          print('MODEL40_BINARY_VALIDATED=PASS')
+          print('MODEL40_BINARY_SIZE=' + str(actual_size))
+          print('MODEL40_HEADER=' + header)
+          PY
+
+      - name: Commit and push LFS object
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git lfs track "models/model.bin"
+          git add .gitattributes models/model.bin
+          if git diff --cached --quiet; then
+            echo "Model 40 binary already committed."
+            exit 0
+          fi
+          git commit -m "Add NLPL Model 40 binary via Git LFS"
+          git push origin HEAD:phase6-construction
