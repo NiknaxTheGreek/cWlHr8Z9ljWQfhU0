@@ -1,0 +1,77 @@
+name: Phase 4 Clean Run
+
+on:
+  push:
+    branches:
+      - phase6-construction
+
+jobs:
+  clean-run:
+    if: contains(github.event.head_commit.message, '[phase4-clean-run]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Run test suite
+        run: |
+          pytest -q
+
+      - name: Fetch and validate NLPL Model 40
+        run: |
+          python scripts/fetch_model40.py
+          test -f models/model.bin
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('models/model.bin')
+          print('model.bin bytes:', p.stat().st_size)
+          PY
+
+      - name: Execute reviewer notebook from a clean kernel
+        run: |
+          mkdir -p artifacts
+          jupyter nbconvert \
+            --to notebook \
+            --execute 01_Potential_Talents_Main.ipynb \
+            --output 01_Potential_Talents_Main.executed.ipynb \
+            --output-dir artifacts \
+            --ExecutePreprocessor.timeout=-1
+
+      - name: Capture clean-run file state
+        if: always()
+        run: |
+          {
+            echo '=== git status ==='
+            git status --short
+            echo
+            echo '=== outputs ==='
+            find outputs -maxdepth 3 -type f -print 2>/dev/null | sort || true
+            echo
+            echo '=== artifacts ==='
+            find artifacts -maxdepth 2 -type f -print 2>/dev/null | sort || true
+          } | tee artifacts/clean_run_file_state.txt
+
+      - name: Upload clean-run evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase4-clean-run-evidence
+          path: |
+            artifacts/
+            outputs/
+          if-no-files-found: warn
+          retention-days: 14
