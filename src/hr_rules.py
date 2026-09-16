@@ -32,9 +32,19 @@ ADJACENT_RULES: tuple[HRRule, ...] = (
     HRRule("HR_ADJ_TALENT", "adjacent", r"\btalent\s+(?:management|acquisition|development)\b", "Talent function adjacent to HR", HR_SCORE_ADJACENT),
 )
 
+# Reviewer-facing pattern tuples used in the notebook audit table.
+DIRECT_PATTERNS: tuple[str, ...] = tuple(rule.pattern for rule in DIRECT_RULES)
+ADJACENT_PATTERNS: tuple[str, ...] = tuple(rule.pattern for rule in ADJACENT_RULES)
+
 
 def ruleset_payload() -> list[dict]:
-    return [r.__dict__ for r in (*DIRECT_RULES, *ADJACENT_RULES)] + [{"rule_id":"HR_IRRELEVANT_FALLBACK","hr_class":"irrelevant","pattern":"<fallback>","reason":"No direct or adjacent HR rule matched","score":HR_SCORE_IRRELEVANT}]
+    return [r.__dict__ for r in (*DIRECT_RULES, *ADJACENT_RULES)] + [{
+        "rule_id": "HR_IRRELEVANT_FALLBACK",
+        "hr_class": "irrelevant",
+        "pattern": "<fallback>",
+        "reason": "No direct or adjacent HR rule matched",
+        "score": HR_SCORE_IRRELEVANT,
+    }]
 
 
 def ruleset_hash() -> str:
@@ -46,14 +56,32 @@ def classify_title(title: str) -> dict:
     text = str(title).casefold()
     for rule in DIRECT_RULES:
         if re.search(rule.pattern, text, flags=re.IGNORECASE):
-            return {"hr_class":rule.hr_class,"hr_rule_id":rule.rule_id,"hr_reason":rule.reason,"H":rule.score}
+            return {
+                "hr_class": rule.hr_class,
+                "hr_rule_id": rule.rule_id,
+                "hr_reason": rule.reason,
+                "H": rule.score,
+            }
     for rule in ADJACENT_RULES:
         if re.search(rule.pattern, text, flags=re.IGNORECASE):
-            return {"hr_class":rule.hr_class,"hr_rule_id":rule.rule_id,"hr_reason":rule.reason,"H":rule.score}
-    return {"hr_class":"irrelevant","hr_rule_id":"HR_IRRELEVANT_FALLBACK","hr_reason":"No direct or adjacent HR rule matched","H":HR_SCORE_IRRELEVANT}
+            return {
+                "hr_class": rule.hr_class,
+                "hr_rule_id": rule.rule_id,
+                "hr_reason": rule.reason,
+                "H": rule.score,
+            }
+    return {
+        "hr_class": "irrelevant",
+        "hr_rule_id": "HR_IRRELEVANT_FALLBACK",
+        "hr_reason": "No direct or adjacent HR rule matched",
+        "H": HR_SCORE_IRRELEVANT,
+    }
 
 
-def apply_hr_rules(clean_50: pd.DataFrame, expected_hr34: int = 34) -> tuple[pd.DataFrame, pd.DataFrame]:
+def apply_hr_rules(
+    clean_50: pd.DataFrame,
+    expected_hr34: int = 34,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     require_columns(clean_50, ("representative_id", "job_title"), "HR_RULE_INPUT")
     classified = clean_50.copy()
     details = pd.DataFrame(classified["job_title"].map(classify_title).tolist())
