@@ -9,7 +9,9 @@ venv/
 .env
 .DS_Store
 40.zip
+models/model.bin
 models/model.txt
+models/model40_local_manifest.json
 cache/
 *.tmp
 *.temp
