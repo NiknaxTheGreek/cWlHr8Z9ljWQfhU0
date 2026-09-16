@@ -1,0 +1,79 @@
+name: Import NLPL Model 40 binary to Git LFS
+
+on:
+  push:
+    branches: [phase6-construction]
+    paths:
+      - '.github/workflows/model40-lfs-import.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import-model40:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Check out working branch
+        uses: actions/checkout@v4
+        with:
+          ref: phase6-construction
+          fetch-depth: 0
+          lfs: false
+
+      - name: Configure Git LFS
+        run: |
+          git lfs install --local
+          git check-attr filter -- models/model.bin
+          grep -F 'models/model.bin filter=lfs' .gitattributes
+
+      - name: Download official compressed NLPL Model 40 archive
+        run: |
+          curl -L --fail --retry 5 --retry-delay 10 \
+            --output /tmp/model40.zip \
+            https://vectors.nlpl.eu/repository/20/40.zip
+          ls -lh /tmp/model40.zip
+          unzip -l /tmp/model40.zip | grep -E '(^|/)(model.bin|LIST)$'
+
+      - name: Extract only runtime binary and LIST
+        run: |
+          mkdir -p models
+          unzip -j -o /tmp/model40.zip model.bin LIST -d models
+          test "$(stat -c%s models/model.bin)" -eq 1651062031
+          test -s models/LIST
+          ls -lh models/model.bin models/LIST
+
+      - name: Validate Model 40 identity and binary header
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          meta = json.loads(Path('models/meta.json').read_text(encoding='utf-8'))
+          assert int(meta['id']) == 40
+          assert int(meta['dimensions']) == 100
+          assert int(meta['vocabulary size']) == 4_027_169
+          with Path('models/model.bin').open('rb') as f:
+              header = f.readline().decode('utf-8').strip().split()
+          assert header[:2] == ['4027169', '100'], header
+          print('MODEL40_VALIDATION=PASS')
+          PY
+
+      - name: Commit binary through Git LFS
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .gitattributes models/model.bin models/LIST
+          if git diff --cached --quiet; then
+            echo 'Model 40 binary already committed; nothing to do.'
+            exit 0
+          fi
+          git commit -m 'Add NLPL Model 40 runtime binary via Git LFS'
+          git push origin HEAD:phase6-construction
+
+      - name: Confirm repository stores an LFS pointer
+        run: |
+          git show HEAD:models/model.bin | sed -n '1,3p'
+          git show HEAD:models/model.bin | grep -F 'version https://git-lfs.github.com/spec/v1'
+          echo 'MODEL40_LFS_IMPORT=PASS'
