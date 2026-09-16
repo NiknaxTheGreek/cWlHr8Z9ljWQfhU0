@@ -6,6 +6,7 @@ from typing import Sequence
 import numpy as np
 import pandas as pd
 
+from . import modeling
 from .ranking import ndcg_at_k, pairwise_order_accuracy, ranked_ids, spearman_score
 from .validation import require, require_finite
 
@@ -35,6 +36,15 @@ def restricted_management_order(management_top17_order: Sequence[int], reviewed_
     return restricted
 
 
+def restrict_order(source_order: Sequence[int], allowed_ids: Sequence[int]) -> list[int]:
+    """Restrict a recorded strict management order to a requested candidate set."""
+    allowed = {int(x) for x in allowed_ids}
+    restricted = [int(x) for x in source_order if int(x) in allowed]
+    require(len(restricted) == len(allowed), "MGMT_RESTRICT_LENGTH", "Restricted order does not cover requested set")
+    require(set(restricted) == allowed, "MGMT_RESTRICT_SET", "Restricted management order set mismatch")
+    return restricted
+
+
 def relative_order_is_locked(scores: Sequence[float], ids: Sequence[int], locked_order: Sequence[int]) -> bool:
     locked = [int(x) for x in locked_order]
     if len(locked) <= 1:
@@ -50,12 +60,7 @@ def assign_reviewed_score_multiset(
     management_order: Sequence[int],
     locked_relative_order: Sequence[int] = (),
 ) -> FeedbackAssignment:
-    """Reassign only the reviewed candidates' current score multiset to management order.
-
-    Candidates outside the reviewed set are unchanged. Previously reviewed candidates may
-    receive different numeric scores at a deeper feedback depth, but their locked relative
-    management order must remain valid.
-    """
+    """Reassign only the reviewed candidates' current score multiset to management order."""
     scores = np.asarray(current_scores, dtype=float)
     ids = np.asarray(representative_ids, dtype=int)
     require(len(scores) == len(ids), "FEEDBACK_LENGTH", "Scores and IDs must align")
@@ -165,3 +170,124 @@ def effort_summary(
         "no_op_actions": int(total_actions - effective_actions),
         "ndcg_gain_per_effective_action": None if effective_actions == 0 else float(gain / effective_actions),
     }
+
+
+def _cohort_order(scores: np.ndarray, ids: np.ndarray, cohort_ids: Sequence[int]) -> list[int]:
+    cohort = [int(x) for x in cohort_ids]
+    id_to_idx = {int(cid): i for i, cid in enumerate(ids)}
+    cohort_scores = np.asarray([scores[id_to_idx[cid]] for cid in cohort], dtype=float)
+    return ranked_ids(cohort_scores, cohort)
+
+
+def sequential_cohort_feedback(
+    X: np.ndarray,
+    ids: Sequence[int],
+    start_scores: Sequence[float],
+    previous_predictions: Sequence[float],
+    cohort_ids: Sequence[int],
+    desired_order: Sequence[int],
+    cutoff: int,
+    model_spec: dict,
+):
+    """Apply one incremental management cohort as auditable score-preserving swaps.
+
+    Each desired position is treated as one management action. If the candidate is
+    already in the requested position the action is recorded as a no-op. Otherwise
+    two score values are swapped, preserving the complete target-score multiset.
+    The model is refit after each effective action so fitted gain is separated from
+    the later repeated-CV generalization test.
+    """
+    X = np.asarray(X, dtype=float)
+    ids = np.asarray(ids, dtype=int)
+    target = np.asarray(start_scores, dtype=float).copy()
+    predictions = np.asarray(previous_predictions, dtype=float).copy()
+    cohort = [int(x) for x in cohort_ids]
+    desired = [int(x) for x in desired_order]
+
+    require(len(target) == len(predictions) == len(ids) == len(X), "SEQUENTIAL_LENGTH", "Feedback arrays must align")
+    require(set(cohort) == set(desired), "SEQUENTIAL_ORDER_SET", "Desired order must equal cohort set")
+    require(len(set(cohort)) == len(cohort), "SEQUENTIAL_COHORT_UNIQUE", "Cohort IDs must be unique")
+    id_to_idx = {int(cid): i for i, cid in enumerate(ids)}
+    require(all(cid in id_to_idx for cid in cohort), "SEQUENTIAL_COHORT_MEMBER", "Cohort ID missing from population")
+
+    stage0_ndcg = ndcg_at_k(target, predictions, min(int(cutoff), len(target)))
+    trajectory = [{"stage": 0, "ndcg": float(stage0_ndcg)}]
+    action_log: list[dict] = []
+    final_alpha = np.nan
+
+    for action_index, desired_id in enumerate(desired, start=1):
+        current_order = _cohort_order(target, ids, cohort)
+        current_id = int(current_order[action_index - 1])
+        effective = current_id != desired_id
+        swap_with_id = None
+        before_desired_score = float(target[id_to_idx[desired_id]])
+
+        if effective:
+            swap_with_id = current_id
+            a = id_to_idx[desired_id]
+            b = id_to_idx[current_id]
+            target[a], target[b] = target[b], target[a]
+
+            final_alpha, _ = modeling.select_alpha(X=X, y=target, model_spec=model_spec)
+            _, predictions = modeling.fit_full(
+                X=X,
+                y=target,
+                alpha=final_alpha,
+                model_spec=model_spec,
+            )
+
+        current_ndcg = ndcg_at_k(target, predictions, min(int(cutoff), len(target)))
+        trajectory.append({"stage": action_index, "ndcg": float(current_ndcg)})
+        action_log.append({
+            "action_index": action_index,
+            "desired_position": action_index,
+            "candidate_id": desired_id,
+            "swapped_with_id": swap_with_id,
+            "effective": bool(effective),
+            "score_before": before_desired_score,
+            "score_after": float(target[id_to_idx[desired_id]]),
+            "ndcg_after_action": float(current_ndcg),
+        })
+
+    require(np.allclose(np.sort(target), np.sort(np.asarray(start_scores, dtype=float)), atol=1e-12, rtol=0.0), "SEQUENTIAL_MULTISET", "Feedback changed the target-score multiset")
+    require(_cohort_order(target, ids, cohort) == desired, "SEQUENTIAL_FINAL_ORDER", "Final cohort order does not match management order")
+
+    if not np.isfinite(final_alpha):
+        final_alpha, _ = modeling.select_alpha(X=X, y=target, model_spec=model_spec)
+        _, predictions = modeling.fit_full(X=X, y=target, alpha=final_alpha, model_spec=model_spec)
+
+    trajectory_df = pd.DataFrame(trajectory)
+    final_ndcg = float(trajectory_df.iloc[-1]["ndcg"])
+    best_ndcg = float(trajectory_df["ndcg"].max())
+    best_stage_index = best_stage(trajectory_df, metric_column="ndcg")
+    effective_actions = int(sum(bool(row["effective"]) for row in action_log))
+    total_actions = len(action_log)
+
+    stage_metrics = {
+        "total_actions": total_actions,
+        "effective_actions": effective_actions,
+        "no_op_actions": total_actions - effective_actions,
+        "ndcg_stage0": float(stage0_ndcg),
+        "ndcg_final": final_ndcg,
+        "delta_ndcg_final": float(final_ndcg - stage0_ndcg),
+        "ndcg_best": best_ndcg,
+        "delta_ndcg_best": float(best_ndcg - stage0_ndcg),
+        "best_stage": int(best_stage_index),
+        "final_alpha": float(final_alpha),
+    }
+    return target, predictions, action_log, stage_metrics
+
+
+def feedback_generalization_cv(
+    X: np.ndarray,
+    target_scores: Sequence[float],
+    ids: Sequence[int],
+    model_spec: dict,
+):
+    """Evaluate an adjusted feedback target with the same repeated nested CV contract."""
+    return modeling.repeated_nested_cv(
+        X=np.asarray(X, dtype=float),
+        y=np.asarray(target_scores, dtype=float),
+        ids=ids,
+        model_spec=model_spec,
+    )
