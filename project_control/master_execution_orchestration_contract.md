@@ -1,4 +1,4 @@
-# Potential Talents — Master Execution & Orchestration Contract v1.0
+# Potential Talents — Master Execution & Orchestration Contract v1.1
 
 This repository follows the final locked Apziva Potential Talents execution contract reconciled through four 100-question audits and Gate 2.
 
@@ -20,7 +20,7 @@ Lower layers may operationalize higher layers but may not contradict them.
 - Queries: `aspiring human resources`; `seeking human resources`.
 - Manual relevance labels are historical appendix evidence only. They are forbidden from analytical filtering, target construction, features, model selection, training, management ordering and feedback.
 - Locked population audit: 104 raw rows -> 52 exact source-title representatives -> remove exactly 2 invalid non-candidate records -> normalized-title dedup -> 50 -> HR rules -> 34.
-- Candidate/query embeddings use NLPL Model 40 English CoNLL17 Word2Vec, 100D, through a validated compact cache.
+- Candidate/query embeddings use the official NLPL Model 40 English CoNLL17 Word2Vec 100D binary. `models/model.bin` is an external local dependency retrieved deterministically by `scripts/fetch_model40.py`; the embedding pipeline streams the validated official binary and retains only the vectors required for the current run. No precomputed embedding cache is an analytical dependency.
 - Model input: `X` is the 34x100 candidate-embedding matrix; `y = G`.
 - Production pipeline: `PCA(n_components=0.95, svd_solver='full') -> StandardScaler -> Ridge`.
 - Production Ridge tuning objective is negative MSE. Genuine inner-OOF NDCG@10 tuning is diagnostic sensitivity only and never automatically replaces MSE tuning.
@@ -39,12 +39,12 @@ Lower layers may operationalize higher layers but may not contradict them.
 ## Repository and artifact locks
 - Exactly two notebooks: `00_Project_Audit_and_Setup.ipynb` and `01_Potential_Talents_Main.ipynb`.
 - The main notebook is the authoritative reviewer-facing executable artifact; `src/` supports it and never replaces it.
-- `00_Project_Audit_and_Setup.ipynb` has exactly nine fixed blocks: repository inventory; current-state assessment; target blueprint; migration plan; environment verification; data/external-resource inspection; helper/rule/test prototyping; embedding/cache verification; promotion/readiness checklist.
+- `00_Project_Audit_and_Setup.ipynb` has exactly nine fixed blocks: repository inventory; current-state assessment; target blueprint; migration plan; environment verification; data/external-resource inspection; helper/rule/test prototyping; embedding/cache verification; promotion/readiness checklist. The historical Block 8 label is retained for stable notebook mapping, but the production architecture uses the validated external full Model 40 binary rather than a committed compact cache.
 - `01_Potential_Talents_Main.ipynb` has exactly fifteen locked top-level sections and the reconciled stable-ID cell map in `project_control/cell_map.json`.
 - Authoritative reports are Markdown; PDFs are derived reviewer artifacts.
-- Reviewer-facing outputs are intentionally compact. Detailed fold, exclusion, cache and feedback audit tables remain reproducibly regenerable unless registered as release artifacts.
+- Reviewer-facing outputs are intentionally compact. Detailed fold, exclusion, model-provenance and feedback audit tables remain reproducibly regenerable unless registered as release artifacts.
 - All authoritative writes use atomic persistence plus post-write reload/integrity validation.
 - Two clean final runs and an actual fresh-clone PASS are required before `REVIEWER_READY = TRUE`.
 
 ## Construction gate
-Gate 2 passed after reconciliation. Production construction is authorized on the `phase6-construction` branch. Runtime gates such as Model 40 cache validation, explicit management ordering, two clean final runs and fresh-clone validation remain enforced at their proper stages.
+Gate 2 passed after reconciliation. Production construction is authorized on the `phase6-construction` branch. Runtime gates such as Model 40 external-binary retrieval/provenance validation, explicit management ordering, two clean final runs and fresh-clone validation remain enforced at their proper stages.
