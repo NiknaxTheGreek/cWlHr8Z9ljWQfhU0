@@ -9,8 +9,6 @@ venv/
 .env
 .DS_Store
 40.zip
-model.bin
-model.txt
 *.tmp
 *.temp
 outputs/.scratch/
