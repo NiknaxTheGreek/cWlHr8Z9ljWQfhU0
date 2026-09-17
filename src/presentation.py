@@ -8,6 +8,7 @@ import matplotlib.figure
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.ticker import MaxNLocator
 
 
 def mean_sd_text(mean: float, sd: float, digits: int = 3) -> str:
@@ -39,16 +40,32 @@ def save_figure_atomic(fig: matplotlib.figure.Figure, path: Path | str, dpi: int
 
 
 def save_population_flow(path: Path | str, labels, counts) -> None:
-    labels = [str(x) for x in labels]
+    label_map = {
+        "Raw rows": "Raw source\nrows",
+        "Exact-title profiles": "Exact-title\nprofiles",
+        "Valid unique profiles": "Valid unique\nprofiles",
+        "HR modelling population": "HR modelling\npopulation",
+    }
+    labels = [label_map.get(str(x), str(x)) for x in labels]
     counts = np.asarray(list(counts), dtype=float)
-    fig, ax = plt.subplots(figsize=(9, 4.8))
+    fig, ax = plt.subplots(figsize=(8.4, 4.8))
     positions = np.arange(len(labels))
-    ax.bar(positions, counts)
-    ax.set_xticks(positions, labels, rotation=20, ha="right")
-    ax.set_ylabel("Candidates")
+    bars = ax.bar(positions, counts)
+    ax.set_xticks(positions, labels)
+    ax.set_ylabel("Count")
     ax.set_title("Candidate population flow")
-    for x, value in zip(positions, counts):
-        ax.text(x, value, f"{int(value)}", ha="center", va="bottom")
+    ax.set_ylim(0, float(counts.max()) * 1.14)
+    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+    for bar, value in zip(bars, counts):
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            value + float(counts.max()) * 0.018,
+            f"{int(value)}",
+            ha="center",
+            va="bottom",
+        )
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
     save_figure_atomic(fig, path)
 
 
