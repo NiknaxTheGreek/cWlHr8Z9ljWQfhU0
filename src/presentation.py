@@ -143,17 +143,36 @@ def save_feedback(
     after_col: str,
 ) -> None:
     frame = df.sort_values(depth_col).copy()
-    x = frame[depth_col].to_numpy(dtype=float)
     before = frame[before_col].to_numpy(dtype=float)
     after = frame[after_col].to_numpy(dtype=float)
-    fig, ax = plt.subplots(figsize=(7.2, 5.0))
-    ax.plot(x, before, marker="o", label="Pre-feedback")
-    ax.plot(x, after, marker="o", label="Feedback-adjusted")
-    ax.axhline(0, linewidth=0.5)
-    ax.set_xlabel("Reviewed fraction")
-    ax.set_ylabel("Depth-matched NDCG")
-    ax.set_title("Management-feedback generalization")
-    ax.legend()
+    delta = after - before
+    x = np.arange(len(frame))
+
+    labels = [f"{int(round(value * 100))}% review" for value in frame[depth_col].to_numpy(dtype=float)]
+    metric_labels = ["NDCG@4", "NDCG@7", "NDCG@17"]
+
+    fig, ax = plt.subplots(figsize=(7.2, 5.2))
+    bars = ax.bar(x, delta)
+    ax.axhline(0, linestyle="--", linewidth=1)
+    ax.set_xticks(x, labels)
+    ax.set_ylabel("Δ held-out NDCG (feedback − pre-feedback)")
+    ax.set_title("Effect of management feedback on held-out ranking")
+
+    lower = float(delta.min()) * 1.22
+    upper = abs(float(delta.min())) * 0.14
+    ax.set_ylim(lower, upper)
+
+    for bar, metric, value in zip(bars, metric_labels, delta):
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            float(value) - 0.00018,
+            f"{metric}\n{value:+.6f}",
+            ha="center",
+            va="top",
+        )
+
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
     save_figure_atomic(fig, path)
 
 
@@ -165,13 +184,35 @@ def save_effort(
 ) -> None:
     frame = df.copy()
     x = frame[actions_col].to_numpy(dtype=float)
-    y = frame[gain_col].to_numpy(dtype=float)
-    fig, ax = plt.subplots(figsize=(6.8, 5.0))
+    y = frame[gain_col].to_numpy(dtype=float) * 1000.0
+
+    if "review_fraction" in frame.columns:
+        labels = [f"{int(round(value * 100))}% review" for value in frame["review_fraction"]]
+    else:
+        labels = [f"Review {index}" for index in range(1, len(frame) + 1)]
+
+    fig, ax = plt.subplots(figsize=(7.0, 5.2))
+    for xv, yv in zip(x, y):
+        ax.vlines(xv, 0, yv, linestyles="dotted")
     ax.scatter(x, y)
-    for row_index, (xv, yv) in enumerate(zip(x, y), start=1):
-        ax.annotate(str(row_index), (xv, yv), xytext=(4, 4), textcoords="offset points")
+
+    for label, xv, yv in zip(labels, x, y):
+        offset_y = 8 if yv >= 0 else -14
+        va = "bottom" if yv >= 0 else "top"
+        ax.annotate(
+            label,
+            (xv, yv),
+            xytext=(6, offset_y),
+            textcoords="offset points",
+            va=va,
+        )
+
     ax.axhline(0, linestyle="--", linewidth=1)
     ax.set_xlabel("Effective management actions")
-    ax.set_ylabel("Fitted NDCG gain")
-    ax.set_title("Management effort versus fitted gain")
+    ax.set_ylabel("Fitted ΔNDCG (×10⁻³)")
+    ax.set_title("Management effort versus fitted ranking gain")
+    ax.set_xlim(0.4, 8.6)
+    ax.set_ylim(-0.9, 0.9)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
     save_figure_atomic(fig, path)
