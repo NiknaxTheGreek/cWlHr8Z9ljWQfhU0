@@ -3,7 +3,7 @@
   "branch": "phase6-construction",
   "construction_gate": "PASSED",
   "mode": "development",
-  "current_checkpoint": "CP5_CLEAN_RUN_2_PASSED",
+  "current_checkpoint": "CP6_FINAL_CLEAN_RUN_REQUESTED",
   "stage_states": {
     "phase_1_repository_audit": "VALIDATED",
     "phase_2_target_design": "VALIDATED",
@@ -73,6 +73,7 @@
     "clean_final_runs_required": 2,
     "clean_final_runs_passed": 2,
     "clean_final_run_2_status": "PASS",
+    "final_approved_clean_run_status": "REQUESTED",
     "fresh_clone_required": true,
     "fresh_clone_status": "PENDING",
     "reviewer_ready": false
