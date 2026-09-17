@@ -1,9 +1,9 @@
 {
-  "state_version": "1.4",
+  "state_version": "1.5",
   "branch": "phase6-construction",
   "construction_gate": "PASSED",
   "mode": "development",
-  "current_checkpoint": "CP4_CLEAN_RUN_1_PASSED",
+  "current_checkpoint": "CP5_CLEAN_RUN_2_PASSED",
   "stage_states": {
     "phase_1_repository_audit": "VALIDATED",
     "phase_2_target_design": "VALIDATED",
@@ -57,12 +57,22 @@
       "notebook_execution": "PASS",
       "artifact_id": 10468281216,
       "artifact_sha256": "ddd22de9212fee4841d3f502133ce62172baa4d71289d140351423ed0240b9ae"
+    },
+    "clean_final_run_2": {
+      "status": "PASS",
+      "workflow_run_id": 35150286095,
+      "head_sha": "743b0b813e7418d03abc36e947cf824dc82e9bd2",
+      "tests": "28 passed",
+      "model_fetch_validation": "PASS",
+      "notebook_execution": "PASS",
+      "artifact_id": 10468094963,
+      "artifact_sha256": "c196800bb9060c0a27c98eeee16b8f3b17e3ff495557a0b3c7e43c4b79f274bb"
     }
   },
   "release_validation": {
     "clean_final_runs_required": 2,
-    "clean_final_runs_passed": 1,
-    "clean_final_run_2_status": "TRIGGERED",
+    "clean_final_runs_passed": 2,
+    "clean_final_run_2_status": "PASS",
     "fresh_clone_required": true,
     "fresh_clone_status": "PENDING",
     "reviewer_ready": false
@@ -72,8 +82,8 @@
   "stale_objects": [],
   "recovery_actions": [],
   "handoffs": [
-    "Validate Clean Final Run #2 against the reconciled full-model state.",
-    "Perform an explicit fresh-clone validation after Clean Final Run #2 passes.",
+    "Continue reviewer-facing analytical audit and findings review without rerunning completed clean-final validation.",
+    "Perform one explicit fresh-clone validation only at the final release gate.",
     "Reconcile final release artifacts and reports before setting REVIEWER_READY = TRUE."
   ]
 }
