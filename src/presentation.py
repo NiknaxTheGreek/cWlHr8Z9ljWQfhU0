@@ -69,17 +69,49 @@ def save_population_flow(path: Path | str, labels, counts) -> None:
     save_figure_atomic(fig, path)
 
 
-def save_oof_scatter(path: Path | str, y, preds) -> None:
+def save_oof_scatter(
+    path: Path | str,
+    y,
+    preds,
+    ids=None,
+    highlight_id: int | None = None,
+    highlight_label: str | None = None,
+) -> None:
     y = np.asarray(y, dtype=float)
     preds = np.asarray(preds, dtype=float)
-    fig, ax = plt.subplots(figsize=(6.4, 5.2))
+    fig, ax = plt.subplots(figsize=(6.2, 6.2))
     ax.scatter(y, preds)
+
     lo = float(min(y.min(), preds.min()))
     hi = float(max(y.max(), preds.max()))
-    ax.plot([lo, hi], [lo, hi], linestyle="--")
+    pad = (hi - lo) * 0.04
+    plot_lo = lo - pad
+    plot_hi = hi + pad
+
+    ax.plot([plot_lo, plot_hi], [plot_lo, plot_hi], linestyle="--")
+    ax.set_xlim(plot_lo, plot_hi)
+    ax.set_ylim(plot_lo, plot_hi)
+    ax.set_aspect("equal", adjustable="box")
+
+    if ids is not None and highlight_id is not None:
+        ids = np.asarray(ids, dtype=int)
+        matches = np.flatnonzero(ids == int(highlight_id))
+        if len(matches) == 1:
+            index = int(matches[0])
+            label = highlight_label or f"ID {highlight_id}"
+            ax.annotate(
+                label,
+                (y[index], preds[index]),
+                xytext=(12, -4),
+                textcoords="offset points",
+                va="center",
+            )
+
     ax.set_xlabel("Analytical target G")
     ax.set_ylabel("Mean OOF Ridge prediction")
     ax.set_title("Out-of-fold prediction versus target")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
     save_figure_atomic(fig, path)
 
 
