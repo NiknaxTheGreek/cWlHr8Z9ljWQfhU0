@@ -82,8 +82,8 @@
   "stale_objects": [],
   "recovery_actions": [],
   "handoffs": [
-    "Continue reviewer-facing analytical audit and findings review without rerunning completed clean-final validation.",
+    "Insert the approved README and regenerate final release outputs from the final approved project state.",
     "Perform one explicit fresh-clone validation only at the final release gate.",
-    "Reconcile final release artifacts and reports before setting REVIEWER_READY = TRUE."
+    "Set REVIEWER_READY = TRUE only after final release validation passes."
   ]
 }
