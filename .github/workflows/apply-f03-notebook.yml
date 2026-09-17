@@ -1,4 +1,4 @@
-name: Apply approved F03 notebook edit
+name: Apply approved feedback-depth label correction
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   apply:
-    if: contains(github.event.head_commit.message, '[notebook-f03]')
+    if: contains(github.event.head_commit.message, '[feedback-labels]')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,14 +24,22 @@ jobs:
         run: |
           python - <<'PY'
           import json
-          nb=json.load(open('01_Potential_Talents_Main.ipynb',encoding='utf-8'))
+          from pathlib import Path
+
+          nb = json.load(open('01_Potential_Talents_Main.ipynb', encoding='utf-8'))
           assert len(nb['cells']) == 58
-          cell=next(c for c in nb['cells'] if c.get('id')=='3017bff9')
-          assert 'Figure F03 compares' in ''.join(cell['source'])
-          print('F03 notebook edit verified.')
+          nb_text = '\n'.join(''.join(c.get('source', [])) for c in nb['cells'])
+          assert 'review_pct = int(round(100 * reviewed_n / len(hr_analysis)))' not in nb_text
+          assert 'review_percentage_by_k[reviewed_n]' in nb_text
+          assert 'feedback_results_table["review_cutoff"].map(review_percentage_by_k)' in nb_text
+
+          presentation = Path('src/presentation.py').read_text(encoding='utf-8')
+          assert 'conceptual_review_labels' in presentation
+          assert 'int(round(value * 100))' not in presentation
+          print('Feedback-depth labels verified as conceptual 10%/20%/50%.')
           PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add 01_Potential_Talents_Main.ipynb
-          git commit -m "[control] Apply approved F03 notebook narrative"
+          git add 01_Potential_Talents_Main.ipynb src/presentation.py
+          git commit -m "[control] Correct conceptual feedback-depth labels"
           git push
