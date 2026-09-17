@@ -14,6 +14,7 @@ from .validation import require, require_columns, require_unique
 RAW_REQUIRED_COLUMNS = ("id", "job_title", "location", "connection", "fit")
 PHONE_RE = re.compile(r"(?:\+?\d[\d\s().-]{7,}\d)")
 EDA_TOKEN_RE = re.compile(r"[A-Za-z]+")
+EDA_STOPWORDS = frozenset({"a", "an", "and", "at", "for", "in", "of", "on", "the", "to"})
 
 
 @dataclass(frozen=True)
@@ -114,7 +115,7 @@ def deduplicate_normalized_titles(valid_titles: pd.DataFrame) -> tuple[pd.DataFr
     require_columns(valid_titles, ("representative_id", "job_title"), "DEDUP_INPUT")
     work = valid_titles.copy()
     work["normalized_title"] = work["job_title"].map(normalize_title_key)
-    require(work["normalized_title"].ne("").all(), "NORMALIZED_TITLE_NONEMPTY", "Normalized title cannot be empty")
+    require(work["normalized_title"].ne(""), "NORMALIZED_TITLE_NONEMPTY", "Normalized title cannot be empty")
     work = work.sort_values("representative_id", kind="stable")
     chosen = work.drop_duplicates("normalized_title", keep="first").copy()
     audit = work[["representative_id", "job_title", "normalized_title"]].copy()
@@ -155,14 +156,19 @@ def clean_candidates(
 
 
 def _eda_tokens(text: str) -> list[str]:
-    return [token.casefold() for token in EDA_TOKEN_RE.findall(str(text))]
+    return [
+        token
+        for token in (match.casefold() for match in EDA_TOKEN_RE.findall(str(text)))
+        if token not in EDA_STOPWORDS
+    ]
 
 
 def text_frequency_summary(titles) -> dict[str, pd.DataFrame]:
     """Focused title-language EDA used only to motivate the two locked queries.
 
     This tokenizer is intentionally simple and separate from Word2Vec preprocessing.
-    It reports transparent corpus counts without feeding directly into the model target.
+    It lowercases alphabetic tokens, removes a small fixed stopword set, and reports
+    transparent corpus counts without feeding directly into the model target.
     """
     title_list = [str(x) for x in titles]
     token_lists = [_eda_tokens(title) for title in title_list]
