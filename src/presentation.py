@@ -10,6 +10,8 @@ import numpy as np
 import pandas as pd
 from matplotlib.ticker import MaxNLocator
 
+from .config import FEEDBACK_DEPTH_TO_K
+
 
 def mean_sd_text(mean: float, sd: float, digits: int = 3) -> str:
     return f"{mean:.{digits}f} ± {sd:.{digits}f}"
@@ -18,6 +20,25 @@ def mean_sd_text(mean: float, sd: float, digits: int = 3) -> str:
 def display_float(value: float, digits: int = 3) -> str:
     return f"{value:.{digits}f}"
 
+
+
+
+def conceptual_review_labels(frame: pd.DataFrame) -> list[str]:
+    """Return locked 10%/20%/50% labels from the corresponding reviewed-candidate counts."""
+    label_by_k = {
+        int(k): f"{int(round(100 * fraction))}% review"
+        for fraction, k in FEEDBACK_DEPTH_TO_K.items()
+    }
+    for column in ("reviewed_n", "review_cutoff", "reviewed_candidates"):
+        if column in frame.columns:
+            values = [int(value) for value in frame[column]]
+            if all(value in label_by_k for value in values):
+                return [label_by_k[value] for value in values]
+    if "review_stage" in frame.columns:
+        labels = [str(value) for value in frame["review_stage"]]
+        if all(label in set(label_by_k.values()) for label in labels):
+            return labels
+    raise ValueError("Feedback figure data do not contain a recognized locked review depth.")
 
 def save_figure_atomic(fig: matplotlib.figure.Figure, path: Path | str, dpi: int = 160) -> None:
     p = Path(path)
@@ -148,7 +169,7 @@ def save_feedback(
     delta = after - before
     x = np.arange(len(frame))
 
-    labels = [f"{int(round(value * 100))}% review" for value in frame[depth_col].to_numpy(dtype=float)]
+    labels = conceptual_review_labels(frame)
     metric_labels = ["NDCG@4", "NDCG@7", "NDCG@17"]
 
     fig, ax = plt.subplots(figsize=(7.2, 5.2))
@@ -186,10 +207,7 @@ def save_effort(
     x = frame[actions_col].to_numpy(dtype=float)
     y = frame[gain_col].to_numpy(dtype=float) * 1000.0
 
-    if "review_fraction" in frame.columns:
-        labels = [f"{int(round(value * 100))}% review" for value in frame["review_fraction"]]
-    else:
-        labels = [f"Review {index}" for index in range(1, len(frame) + 1)]
+    labels = conceptual_review_labels(frame)
 
     fig, ax = plt.subplots(figsize=(7.0, 5.2))
     for xv, yv in zip(x, y):
