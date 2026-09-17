@@ -41,7 +41,7 @@ Lower layers may operationalize higher layers but may not contradict them.
 - The main notebook is the authoritative reviewer-facing executable artifact; `src/` supports it and never replaces it.
 - `00_Project_Audit_and_Setup.ipynb` has exactly nine fixed blocks: repository inventory; current-state assessment; target blueprint; migration plan; environment verification; data/external-resource inspection; helper/rule/test prototyping; embedding/cache verification; promotion/readiness checklist. The historical Block 8 label is retained for stable notebook mapping, but the production architecture uses the validated external full Model 40 binary rather than a committed compact cache.
 - `01_Potential_Talents_Main.ipynb` has exactly fifteen locked top-level sections and the reconciled stable-ID cell map in `project_control/cell_map.json`.
-- Authoritative reports are Markdown; PDFs are derived reviewer artifacts.
+- Reviewer-facing narrative is consolidated in the approved README and the authoritative main notebook; no standalone Technical Report or Business Recommendations document is required.
 - Reviewer-facing outputs are intentionally compact. Detailed fold, exclusion, model-provenance and feedback audit tables remain reproducibly regenerable unless registered as release artifacts.
 - All authoritative writes use atomic persistence plus post-write reload/integrity validation.
 - Two clean final runs and an actual fresh-clone PASS are required before `REVIEWER_READY = TRUE`.
