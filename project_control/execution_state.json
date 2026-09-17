@@ -82,7 +82,7 @@
   "stale_objects": [],
   "recovery_actions": [],
   "handoffs": [
-    "Insert the approved README and regenerate final release outputs from the final approved project state.",
+    "Regenerate final release outputs from the approved README, notebook and source state.",
     "Perform one explicit fresh-clone validation only at the final release gate.",
     "Set REVIEWER_READY = TRUE only after final release validation passes."
   ]
