@@ -3,7 +3,7 @@
   "branch": "phase6-construction",
   "construction_gate": "PASSED",
   "mode": "development",
-  "current_checkpoint": "CP7_FINAL_RELEASE_ARTIFACTS_PUBLISHED",
+  "current_checkpoint": "CP8_FRESH_CLONE_REQUESTED",
   "stage_states": {
     "phase_1_repository_audit": "VALIDATED",
     "phase_2_target_design": "VALIDATED",
@@ -45,14 +45,8 @@
       "embedding_mode": "stream validated official binary; no precomputed embedding cache analytical dependency"
     },
     "embedding_shapes": {
-      "candidate": [
-        34,
-        100
-      ],
-      "queries": [
-        2,
-        100
-      ]
+      "candidate": [34, 100],
+      "queries": [2, 100]
     },
     "clean_final_run_1": {
       "status": "PASS",
@@ -90,11 +84,12 @@
     "clean_final_runs_passed": 2,
     "clean_final_run_2_status": "PASS",
     "final_approved_clean_run_status": "PASS",
+    "final_approved_clean_run_id": 35273484952,
+    "final_approved_clean_run_head_sha": "6dd522e0b9a002a2f6267ad10480e14fd1dc8319",
+    "published_release_artifact_commit": "ddfdc552f89f7dedd3374b8f33ba402e0234e6d2",
     "fresh_clone_required": true,
     "fresh_clone_status": "REQUESTED",
-    "reviewer_ready": false,
-    "final_approved_clean_run_id": 35273484952,
-    "final_approved_clean_run_head_sha": "6dd522e0b9a002a2f6267ad10480e14fd1dc8319"
+    "reviewer_ready": false
   },
   "warnings": [],
   "deviations": [],
