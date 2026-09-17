@@ -1,3 +1,0 @@
-authoritative_clean_run=35273484952
-approved_by_user=true
-purpose=publish_exact_clean_run_artifacts_and_request_fresh_clone_validation

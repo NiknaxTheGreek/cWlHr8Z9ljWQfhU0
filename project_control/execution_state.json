@@ -3,7 +3,7 @@
   "branch": "phase6-construction",
   "construction_gate": "PASSED",
   "mode": "development",
-  "current_checkpoint": "CP6_FINAL_CLEAN_RUN_REQUESTED",
+  "current_checkpoint": "CP7_FINAL_RELEASE_ARTIFACTS_PUBLISHED",
   "stage_states": {
     "phase_1_repository_audit": "VALIDATED",
     "phase_2_target_design": "VALIDATED",
@@ -45,8 +45,14 @@
       "embedding_mode": "stream validated official binary; no precomputed embedding cache analytical dependency"
     },
     "embedding_shapes": {
-      "candidate": [34, 100],
-      "queries": [2, 100]
+      "candidate": [
+        34,
+        100
+      ],
+      "queries": [
+        2,
+        100
+      ]
     },
     "clean_final_run_1": {
       "status": "PASS",
@@ -67,24 +73,35 @@
       "notebook_execution": "PASS",
       "artifact_id": 10468094963,
       "artifact_sha256": "c196800bb9060c0a27c98eeee16b8f3b17e3ff495557a0b3c7e43c4b79f274bb"
+    },
+    "final_approved_clean_run": {
+      "status": "PASS",
+      "workflow_run_id": 35273484952,
+      "head_sha": "6dd522e0b9a002a2f6267ad10480e14fd1dc8319",
+      "tests": "PASS (same 28-test suite)",
+      "model_fetch_validation": "PASS",
+      "notebook_execution": "PASS",
+      "artifact_id": 10518614089,
+      "artifact_sha256": "3dddc022a8717cbca3b6ed32b262e40c61a78127393409720b3eb1b94801ffc2"
     }
   },
   "release_validation": {
     "clean_final_runs_required": 2,
     "clean_final_runs_passed": 2,
     "clean_final_run_2_status": "PASS",
-    "final_approved_clean_run_status": "REQUESTED",
+    "final_approved_clean_run_status": "PASS",
     "fresh_clone_required": true,
-    "fresh_clone_status": "PENDING",
-    "reviewer_ready": false
+    "fresh_clone_status": "REQUESTED",
+    "reviewer_ready": false,
+    "final_approved_clean_run_id": 35273484952,
+    "final_approved_clean_run_head_sha": "6dd522e0b9a002a2f6267ad10480e14fd1dc8319"
   },
   "warnings": [],
   "deviations": [],
   "stale_objects": [],
   "recovery_actions": [],
   "handoffs": [
-    "Regenerate final release outputs from the approved README, notebook and source state.",
-    "Perform one explicit fresh-clone validation only at the final release gate.",
-    "Set REVIEWER_READY = TRUE only after final release validation passes."
+    "Validate the published final release artifacts from an explicit fresh clone.",
+    "Set REVIEWER_READY = TRUE only after the fresh-clone validation passes."
   ]
 }

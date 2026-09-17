@@ -1,0 +1,72 @@
+{
+  "model_spec": {
+    "alpha_grid": [
+      0.001,
+      0.0022758459260747888,
+      0.005179474679231213,
+      0.011787686347935871,
+      0.02682695795279726,
+      0.0610540229658533,
+      0.13894954943731375,
+      0.31622776601683794,
+      0.7196856730011522,
+      1.6378937069540647,
+      3.7275937203149416,
+      8.483428982440726,
+      19.306977288832496,
+      43.93970560760795,
+      100.0
+    ],
+    "inner_splits": 4,
+    "ndcg_cutoffs": [
+      4,
+      7,
+      10,
+      17,
+      34
+    ],
+    "outer_repeats": 10,
+    "outer_splits": 5,
+    "pca_solver": "full",
+    "pca_variance": 0.95,
+    "seed": 42,
+    "tuning_objective": "mse"
+  },
+  "output_sha256": {
+    "outputs/feedback_summary.csv": "442e662e3844a9edaeb7d76d281854fd4565538ef8fe6e5f55a50a087ca37b83",
+    "outputs/figures/F01_population_flow.png": "7a2f9c955613789eb0537c1bdde8debfde505b591a863ab2c915b0aeb658a948",
+    "outputs/figures/F02_oof_prediction_vs_target.png": "0227c0db9971ab7d2ffdeb003efd822c6a38586d67cc04a554496234cdf2026f",
+    "outputs/figures/F03_target_vs_oof_rank.png": "d7269aada5391e0be274e69af20ddcd73eeb081ce9855118f3b12a25e201c3b8",
+    "outputs/figures/F04_feedback_generalization.png": "82792989769810a87e362274dcc57d2091c0b061b4629c6f75e14753ab48f88d",
+    "outputs/figures/F05_management_effort_vs_fitted_gain.png": "fc7db55f0e803fe806255aaac167f5157830db83acc8162e3e443c86884f1155",
+    "outputs/final_ranking.csv": "a6baf96e60c7afb013fe65dd7f60fa7b9eb1180870cec1952062af717fa8360f",
+    "outputs/run.log": "2d35cda2a83c440f7a47f22d51bf5f0b4e6bbed423dee8daa96a0c3f8812d946"
+  },
+  "population_counts": {
+    "exact_title_profiles": 52,
+    "hr_modeling_population": 34,
+    "raw_rows": 104,
+    "valid_unique_profiles": 50
+  },
+  "production_alpha": 3.7275937203149416,
+  "production_ranking": "frozen_pre_feedback_ridge",
+  "raw_data_file": "data/raw/potential-talents.csv",
+  "raw_data_sha256": "ca989e05e0006dee860265a6e2cac1321977a28b3ff73526848cdfe012dfcf46",
+  "requirements_sha256": {
+    "requirements-lock.txt": "e5f68dacb034d4cd374c1453de751f5294cddf552466dfd0f88d7406a4656997",
+    "requirements.txt": "8ccc438b3cb08b04531bc1492acc8e19152070840460de13680893969c62a025"
+  },
+  "source_sha256": {
+    "__init__.py": "f08260b1336ad47d6c303c5fa29be91d03fa37a3a02d2b40ad09a244f166c3e3",
+    "config.py": "441d725eda6ee50381a5e443b910f5152f8c391a2eac54b5ec853f799d32f3c9",
+    "data_pipeline.py": "c3506862600e94524fa7aba6b7bcde726f61917b88078aec65c8b4e58871fe0a",
+    "embeddings.py": "0f1fd01d11d7f7b5a5ceda08113e54f71162b61c949e5f8f97a816e4395754c9",
+    "feedback.py": "bf607cb1e7d8d30fe32c630d79a51a11e275774746f3da80f363b20ab669579f",
+    "hr_rules.py": "f5c3f00910d6c966cf79184e92655997628347260b246a8ccfb8307a027780e1",
+    "io_utils.py": "878a9d12cb33f63cbbff84935fae89b66bf61429e5a120472a32216b6c93929f",
+    "modeling.py": "2f3677745f1bfba4a7f527cddc3e8c51097b15261233ded593c432ee32603098",
+    "presentation.py": "6734628bce107d9919a1116b90fc2483a60868f9b73387965f5d506f1d4ede88",
+    "ranking.py": "4b042d8d0f2e1538bdc147cf09192c815aa4dc8e0df3f0a61e169e76a3ee73ef",
+    "validation.py": "1b927459df40d19e320f0a49e98006ae7674987c575d33b548d35f15f9bdc3b4"
+  }
+}

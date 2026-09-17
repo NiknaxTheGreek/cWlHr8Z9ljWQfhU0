@@ -1,0 +1,9 @@
+Potential Talents final analytical run
+raw_rows=104
+exact_title_profiles=52
+valid_unique_profiles=50
+hr_modeling_population=34
+outer_repeats=10
+outer_splits=5
+production_alpha=3.72759372031
+production_ranking=pre_feedback_ridge

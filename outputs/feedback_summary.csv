@@ -1,0 +1,6 @@
+experiment,population,reviewed_n,review_fraction,metric,baseline_value,post_feedback_value,delta,effective_actions,fitted_delta_ndcg,evaluation_scope
+progressive_feedback,HR34,4,0.11764705882352941,ndcg_at_4,0.9897390693685779,0.9874829700934693,-0.002256099275108614,3.0,-0.0004956899125061476,repeated_nested_cv_generalization
+progressive_feedback,HR34,7,0.20588235294117646,ndcg_at_7,0.9910317664307163,0.9858433935235261,-0.0051883729071902085,1.0,0.0005348073207134263,repeated_nested_cv_generalization
+progressive_feedback,HR34,17,0.5,ndcg_at_17,0.9946837229305674,0.9920154902145818,-0.0026682327159855967,8.0,0.000251720716038184,repeated_nested_cv_generalization
+top25_management_rerank,HR34,25,0.7352941176470589,ndcg_at_25,0.9987534072419804,0.9954001618780819,-0.0033532453638984716,,,direct_management_order_audit
+top25_management_rerank,Full 50,25,0.5,ndcg_at_25,0.998708211953656,0.9954001618780819,-0.0033080500755741093,,,direct_management_order_audit

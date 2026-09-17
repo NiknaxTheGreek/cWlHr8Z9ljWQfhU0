@@ -125,7 +125,7 @@ Pre-feedback PCA–Ridge mean OOS NDCG: `0.9897 @4`, `0.9910 @7`, `0.9921 @10`, 
 
 **Figure 2 — Analytical ground-truth rank vs mean out-of-sample Ridge rank**
 
-![Analytical ground-truth rank vs mean out-of-sample Ridge rank](outputs/figures/F03_reference_vs_predicted_rank.png)
+![Analytical ground-truth rank vs mean out-of-sample Ridge rank](outputs/figures/F03_target_vs_oof_rank.png)
 
 W-only baseline NDCG: 1.0000 @4,@7,@10,@17 and 0.9999 @34; slightly higher PCA-Ridge at every cutoff. Learned model still near-perfect. Relationship baseline/constructed target deferred to Section 6.
 
@@ -133,13 +133,13 @@ Feedback: 10% .989739→.987483 delta -.002256; 20% .991032→.985843 delta -.00
 
 **Figure 3 — Effect of management feedback on held-out ranking performance**
 
-![Effect of management feedback on held-out ranking performance](outputs/figures/F04_feedback_ndcg_trajectory.png)
+![Effect of management feedback on held-out ranking performance](outputs/figures/F04_feedback_generalization.png)
 
 Effective actions 3,1,8; fitted NDCG changes -0.000496,+0.000535,+0.000252. **Figure 4** intervention vs fitted changes. 50% greatest intervention only tiny fitted gain and still reduced held-out NDCG.
 
 **Figure 4 — Management effort versus fitted ranking gain**
 
-![Management effort versus fitted ranking gain](outputs/figures/F05_management_effort_vs_gain.png)
+![Management effort versus fitted ranking gain](outputs/figures/F05_management_effort_vs_fitted_gain.png)
 
 Top25: HR34 automated .998753 → management .995400 delta -.003353; valid50 .998708 → .995400 delta -.003308. Consistent across main and sensitivity.
 
