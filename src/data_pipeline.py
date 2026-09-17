@@ -115,7 +115,7 @@ def deduplicate_normalized_titles(valid_titles: pd.DataFrame) -> tuple[pd.DataFr
     require_columns(valid_titles, ("representative_id", "job_title"), "DEDUP_INPUT")
     work = valid_titles.copy()
     work["normalized_title"] = work["job_title"].map(normalize_title_key)
-    require(work["normalized_title"].ne(""), "NORMALIZED_TITLE_NONEMPTY", "Normalized title cannot be empty")
+    require(work["normalized_title"].ne("").all(), "NORMALIZED_TITLE_NONEMPTY", "Normalized title cannot be empty")
     work = work.sort_values("representative_id", kind="stable")
     chosen = work.drop_duplicates("normalized_title", keep="first").copy()
     audit = work[["representative_id", "job_title", "normalized_title"]].copy()
