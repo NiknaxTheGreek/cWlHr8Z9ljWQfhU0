@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import unicodedata
 from pathlib import Path
 
 NOTEBOOK_PATH = Path("01_Potential_Talents_Main.ipynb")
@@ -58,8 +57,8 @@ def clean_unicode(text: str) -> str:
 def normalize_markdown_math(text: str) -> str:
     # Dollar-delimited math is the most portable convention across Jupyter,
     # nbconvert and GitHub notebook rendering.
-    text = text.replace("\\(", "$"s)
-    text = text.replace("\\)", "$"s)
+    text = text.replace("\\(", "$")
+    text = text.replace("\\)", "$")
     text = text.replace("\\[", "$$")
     text = text.replace("\\]", "$$")
     return text
