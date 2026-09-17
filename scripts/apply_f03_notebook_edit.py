@@ -1,23 +1,103 @@
 import json
+import re
 from pathlib import Path
 
-p = Path('01_Potential_Talents_Main.ipynb')
-nb = json.loads(p.read_text(encoding='utf-8'))
+NOTEBOOK = Path('01_Potential_Talents_Main.ipynb')
+PRESENTATION = Path('src/presentation.py')
+
+# --- Notebook: keep actual review fractions for computation, but display locked conceptual labels. ---
+nb = json.loads(NOTEBOOK.read_text(encoding='utf-8'))
 assert len(nb['cells']) == 58
 
-cell = next(c for c in nb['cells'] if c.get('id') == '3017bff9')
-text = '''# Interpret Figure F03
+notebook_replacements = 0
+for cell in nb['cells']:
+    if cell.get('cell_type') != 'code':
+        continue
+    text = ''.join(cell.get('source', []))
+    original = text
 
-Figure F03 compares each candidate's analytical target rank on the horizontal axis with the rank obtained from the candidate's mean out-of-fold Ridge prediction on the vertical axis. Rank 1 represents the highest-ranked candidate on both axes. The dashed diagonal therefore represents exact agreement between the analytical target ordering and the out-of-fold model ordering.
+    # Progressive feedback summary table: display 10/20/50 rather than 4/34, 7/34, 17/34 as percentages.
+    pattern = re.compile(
+        r'feedback_results_table\[\s*"review_percentage"\s*\]\s*=\s*\(\s*'
+        r'100\s*\*\s*feedback_results_table\[\s*"review_fraction"\s*\]\s*\)',
+        flags=re.MULTILINE,
+    )
+    replacement = '''review_percentage_by_k = {
+    int(k): int(round(100 * fraction))
+    for fraction, k in config.FEEDBACK_DEPTH_TO_K.items()
+}
+feedback_results_table["review_percentage"] = (
+    feedback_results_table["review_cutoff"].map(review_percentage_by_k)
+)'''
+    text, n = pattern.subn(replacement, text)
+    notebook_replacements += n
 
-Most observations remain reasonably close to the diagonal, particularly toward the strongest and weakest ends of the ranking. This shows that PCA–Ridge broadly preserves the candidate ordering encoded by the analytical target while still producing individual rank movements.
+    # Comprehensive final NDCG table: use the same conceptual stage labels.
+    old = 'review_pct = int(round(100 * reviewed_n / len(hr_analysis)))'
+    new = 'review_pct = review_percentage_by_k[reviewed_n]'
+    if old in text:
+        text = text.replace(old, new)
+        notebook_replacements += 1
 
-Points above the diagonal are ranked more highly by Ridge than by the analytical target, whereas points below the diagonal are ranked lower by Ridge. Some candidates move several positions, showing that strong overall ranking performance does not imply exact reproduction of every candidate's position.
+    if text != original:
+        cell['source'] = text.splitlines(keepends=True)
 
-This pattern is consistent with the metric results. NDCG remains very high because it places greater emphasis on preserving highly relevant candidates near the top of the ranking, while Spearman and Kendall measure agreement across the complete ordering and are therefore more sensitive to rank movements throughout the full population.
+assert notebook_replacements == 2, f'Expected 2 notebook label replacements, got {notebook_replacements}'
+NOTEBOOK.write_text(json.dumps(nb, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
 
-Figure F03 consequently complements the numerical ranking metrics by showing where ordering disagreement occurs rather than summarizing that disagreement in a single statistic.
+# --- Presentation figures: derive labels from the locked conceptual depth-to-k configuration. ---
+presentation = PRESENTATION.read_text(encoding='utf-8')
+
+if 'from .config import FEEDBACK_DEPTH_TO_K' not in presentation:
+    presentation = presentation.replace(
+        'from matplotlib.ticker import MaxNLocator\n',
+        'from matplotlib.ticker import MaxNLocator\n\nfrom .config import FEEDBACK_DEPTH_TO_K\n',
+        1,
+    )
+
+helper = '''\n\ndef conceptual_review_labels(frame: pd.DataFrame) -> list[str]:
+    """Return locked 10%/20%/50% labels from the corresponding reviewed-candidate counts."""
+    label_by_k = {
+        int(k): f"{int(round(100 * fraction))}% review"
+        for fraction, k in FEEDBACK_DEPTH_TO_K.items()
+    }
+    for column in ("reviewed_n", "review_cutoff", "reviewed_candidates"):
+        if column in frame.columns:
+            values = [int(value) for value in frame[column]]
+            if all(value in label_by_k for value in values):
+                return [label_by_k[value] for value in values]
+    if "review_stage" in frame.columns:
+        labels = [str(value) for value in frame["review_stage"]]
+        if all(label in set(label_by_k.values()) for label in labels):
+            return labels
+    raise ValueError("Feedback figure data do not contain a recognized locked review depth.")
 '''
-cell['source'] = text.splitlines(keepends=True)
-p.write_text(json.dumps(nb, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
-print('Applied approved F03 narrative; 58 cells preserved.')
+
+if 'def conceptual_review_labels(' not in presentation:
+    marker = 'def save_figure_atomic('
+    idx = presentation.index(marker)
+    presentation = presentation[:idx] + helper + '\n' + presentation[idx:]
+
+old_feedback_labels = 'labels = [f"{int(round(value * 100))}% review" for value in frame[depth_col].to_numpy(dtype=float)]'
+assert old_feedback_labels in presentation, 'Expected save_feedback percentage-label expression not found'
+presentation = presentation.replace(
+    old_feedback_labels,
+    'labels = conceptual_review_labels(frame)',
+    1,
+)
+
+old_effort_block = '''    if "review_fraction" in frame.columns:
+        labels = [f"{int(round(value * 100))}% review" for value in frame["review_fraction"]]
+    else:
+        labels = [f"Review {index}" for index in range(1, len(frame) + 1)]'''
+assert old_effort_block in presentation, 'Expected save_effort percentage-label block not found'
+presentation = presentation.replace(
+    old_effort_block,
+    '    labels = conceptual_review_labels(frame)',
+    1,
+)
+
+assert 'int(round(value * 100))' not in presentation
+PRESENTATION.write_text(presentation, encoding='utf-8')
+
+print('Applied conceptual 10%/20%/50% display labels; computational fractions and all model results unchanged.')
