@@ -1,0 +1,37 @@
+name: Apply approved F03 notebook edit
+
+on:
+  push:
+    branches:
+      - phase6-construction
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: contains(github.event.head_commit.message, '[notebook-f03]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase6-construction
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python scripts/apply_f03_notebook_edit.py
+      - name: Verify and commit
+        run: |
+          python - <<'PY'
+          import json
+          nb=json.load(open('01_Potential_Talents_Main.ipynb',encoding='utf-8'))
+          assert len(nb['cells']) == 58
+          cell=next(c for c in nb['cells'] if c.get('id')=='3017bff9')
+          assert 'Figure F03 compares' in ''.join(cell['source'])
+          print('F03 notebook edit verified.')
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add 01_Potential_Talents_Main.ipynb
+          git commit -m "[control] Apply approved F03 notebook narrative"
+          git push
