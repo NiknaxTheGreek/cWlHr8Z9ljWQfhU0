@@ -1,0 +1,44 @@
+name: Apply approved Cell 56 wording
+
+on:
+  push:
+    branches:
+      - phase6-construction
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: contains(github.event.head_commit.message, '[cell56-apply]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase6-construction
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Apply approved Cell 56 wording
+        run: python scripts/apply_cell56_wording.py
+      - name: Verify Cell 56 wording and structure
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          nb = json.loads(Path('01_Potential_Talents_Main.ipynb').read_text())
+          assert len(nb['cells']) == 58
+          source = ''.join(nb['cells'][55]['source'])
+          assert source.startswith('# Model performance observations')
+          assert '3, 1, and 8 effective actions' in source
+          assert '-0.002256, -0.005188, and -0.002668' in source
+          assert 'neither greater intervention nor the observed fitted changes' in source
+          print('Cell 56 verification passed.')
+          PY
+      - name: Commit notebook
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add 01_Potential_Talents_Main.ipynb
+          git commit -m "[control] Apply approved Cell 56 wording"
+          git push
