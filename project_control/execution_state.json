@@ -3,7 +3,7 @@
   "branch": "phase6-construction",
   "construction_gate": "PASSED",
   "mode": "development",
-  "current_checkpoint": "CP8_FRESH_CLONE_REQUESTED",
+  "current_checkpoint": "CP9_REVIEWER_READY",
   "stage_states": {
     "phase_1_repository_audit": "VALIDATED",
     "phase_2_target_design": "VALIDATED",
@@ -77,6 +77,19 @@
       "notebook_execution": "PASS",
       "artifact_id": 10518614089,
       "artifact_sha256": "3dddc022a8717cbca3b6ed32b262e40c61a78127393409720b3eb1b94801ffc2"
+    },
+    "fresh_clone_release_validation": {
+      "status": "PASS",
+      "workflow_run_id": 35275081369,
+      "head_sha": "6b60ba1c680e85c14384492b77426fc952476fc6",
+      "clone": "PASS",
+      "dependencies": "PASS",
+      "tests": "PASS",
+      "model_fetch_validation": "PASS",
+      "notebook_execution": "PASS",
+      "required_outputs": "PASS",
+      "artifact_id": 10520840921,
+      "artifact_sha256": "b1fd97334d3d6350cdee35e6d234c28803ad4c71926074f4c127bfbf96aa9ae8"
     }
   },
   "release_validation": {
@@ -88,15 +101,17 @@
     "final_approved_clean_run_head_sha": "6dd522e0b9a002a2f6267ad10480e14fd1dc8319",
     "published_release_artifact_commit": "ddfdc552f89f7dedd3374b8f33ba402e0234e6d2",
     "fresh_clone_required": true,
-    "fresh_clone_status": "REQUESTED",
-    "reviewer_ready": false
+    "fresh_clone_status": "PASS",
+    "fresh_clone_run_id": 35275081369,
+    "fresh_clone_validated_head_sha": "6b60ba1c680e85c14384492b77426fc952476fc6",
+    "reviewer_ready": true
   },
   "warnings": [],
   "deviations": [],
   "stale_objects": [],
   "recovery_actions": [],
   "handoffs": [
-    "Validate the published final release artifacts from an explicit fresh clone.",
-    "Set REVIEWER_READY = TRUE only after the fresh-clone validation passes."
+    "Final release validation is complete and REVIEWER_READY is TRUE.",
+    "The reviewer-ready status commit is independently fresh-clone validated by its tagged workflow run."
   ]
 }
