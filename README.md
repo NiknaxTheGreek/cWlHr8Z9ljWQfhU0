@@ -165,18 +165,25 @@ The strongest next step would be to replace or supplement the constructed proxy 
 
 ## 7. Repository Structure
 
-The repository separates the main analysis, reusable source code, data, external-model metadata, configuration, and reproducibility files so that the project can be inspected without relying on notebook cells alone. The main components are:
+The final repository contains only the files needed to inspect, reproduce, test, and review the analysis:
 
-- `00_Project_Audit_and_Setup.ipynb` — initial project, data, environment, and dependency checks;
 - `01_Potential_Talents_Main.ipynb` — authoritative end-to-end analysis containing data preparation, EDA, target construction, modelling, validation, feedback experiments, figures, and final findings;
 - `src/` — reusable Python modules for data processing, HR screening rules, Word2Vec embeddings, modelling, ranking, feedback, validation, and figure generation;
-- `data/` — supplied raw candidate data and project data assets;
-- `models/` — metadata and supporting files required to validate and use the external NLPL Model 40 Word2Vec resource;
-- `project_control/` — run configuration, manifests, and project-level audit information;
+- `data/raw/potential-talents.csv` — supplied source dataset used by the analysis;
+- `models/` and `scripts/fetch_model40.py` — metadata and retrieval/validation logic for the external NLPL Model 40 Word2Vec resource;
+- `tests/` — automated tests for the reusable pipeline components;
+- `outputs/` — final rankings, feedback summary, and generated figures;
 - `requirements.txt` and `requirements-lock.txt` — project dependencies and the locked execution environment.
 
 The notebook remains the primary reviewer-facing analytical record, while repeated logic is kept in `src/` so that important calculations are implemented once and called consistently throughout the project.
 
-The project is designed to be reproducible from a clean environment. Dependencies are pinned, random seeds and model settings are centralized, the raw dataset and external embedding resource are validated before use, and the main notebook calls the same reusable source functions used throughout the pipeline. Key outputs, figures, rankings, validation summaries, and run metadata are regenerated from the executed workflow rather than maintained as disconnected manual artifacts. This keeps the notebook, source code, and reported results aligned and allows the full analysis to be rerun and audited from the repository contents.
+To reproduce the project from a clean clone, install the dependencies, fetch and validate Model 40, run the tests, and execute the notebook:
 
-The final project deliverables are the executed main notebook, the supporting `src/` modules, the validated data and model-resource metadata required to reproduce the analysis, the generated ranking and validation outputs, the final README, and the figures used to communicate the main findings. Together, these files provide the complete analytical record, implementation, supporting evidence, and reviewer-facing documentation for the project.
+```bash
+python -m pip install -r requirements.txt
+python scripts/fetch_model40.py
+pytest -q
+jupyter nbconvert --to notebook --execute 01_Potential_Talents_Main.ipynb --output 01_Potential_Talents_Main.executed.ipynb --ExecutePreprocessor.timeout=-1
+```
+
+The executed workflow regenerates the ranking, feedback summary, and figures from the supplied data and fixed project configuration.
