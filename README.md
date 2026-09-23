@@ -4,7 +4,7 @@
 
 Talent sourcing requires substantial manual effort to identify relevant candidates, rank the strongest profiles, and incorporate management judgement as role requirements evolve. The major objective is to develop and validate a scalable candidate-screening and ranking pipeline that reduces manual review, prioritises candidates by fitness, and uses management feedback to refine rankings when justified.
 
-The first objective is to establish a valid candidate population. The supplied dataset contains 104 records with `id`, `job_title`, `location`, `connection`, and `fit`. After duplicate and invalid profiles are removed, transparent occupational rules identify 34 HR-relevant roles with unique job titles.
+The first objective is to establish a valid candidate population. The supplied dataset contains 104 records with `id`, `job_title`, `location`, `connection`, and `fit`. After duplicate and invalid profiles are removed, a mean raw-cosine floor of **0.50** is applied against the two locked HR search queries, followed by a deterministic HR-domain phrase check. This reproducibly reduces the 50 valid unique-title profiles to the same 34 HR-relevant candidates used throughout the analysis.
 
 The second objective is to construct a defensible ground truth because the supplied `fit` field contains no observed values. Rule-based screening produces occupational relevance `H` on a 0–1 scale, while NLPL Model 40 Word2Vec embeddings produce semantic relevance `W` from similarity to the HR search queries “Aspiring human resources” and “Seeking human resources,” supported by focused EDA. These complementary signals are weighted equally as `G = (H + W) / 2`.
 
@@ -40,13 +40,52 @@ Because this use case evaluates occupational relevance to Human Resources, `job_
 
 Two of these 52 profiles are removed following human inspection because they do not describe genuine candidate roles. ID 75 — “Nortia Staffing is seeking Human Resources, Payroll & Administrative Professionals!! (408) 709-2621” — is a staffing/recruitment advertisement rather than a candidate profile. ID 103 — “Always set them up for Success” — is a non-occupational slogan with no candidate role information. Removing these records leaves 50 valid profiles with unique job titles.
 
-The 50 valid profiles are then screened using explicit occupational rules:
+The 50 valid profiles then pass through a deterministic two-part relevance screen.
 
-- **Direct HR, H = 1:** titles containing clear HR evidence such as “Human Resources,” standalone acronym “HR,” “CHRO,” or HR credentials such as “GPHR” or “SPHR”.
-- **Adjacent HR, H = 0.5:** titles containing closely related people functions such as “People Development,” “People Operations,” “Talent Management,” “Talent Acquisition,” or “Talent Development”.
-- **Irrelevant, H = 0:** titles matching none of the direct or adjacent HR indicators.
+**1. Cosine-similarity floor.** For each profile, raw cosine similarity is calculated against the two locked HR search queries, “Aspiring human resources” and “Seeking human resources.” The screening score is the mean of those two raw cosine values:
 
-The screening logic was developed and checked through human inspection of representative HR, borderline, and unrelated job titles to ensure rules reflected intended occupational distinction. Once fixed, same rules applied automatically to every profile, with direct HR rules taking precedence over adjacent rules and unmatched titles classified irrelevant. This removes 16 irrelevant profiles and retains 34 HR-relevant roles for modelling: 33 direct HR profiles and one adjacent profile. The 50 → 34 reduction therefore combines human judgement in defining/validating screening criteria with consistent automated application across dataset.
+```
+mean_raw_cosine = (cosine_aspiring + cosine_seeking) / 2
+```
+
+A conservative minimum cutoff of **0.50** is applied. Profiles with `mean_raw_cosine < 0.50` fail the semantic floor. In the observed 50-profile dataset, this directly excludes one profile (ID 5, mean raw cosine 0.483489), leaving 49 profiles above the semantic floor.
+
+**2. HR-domain search-phrase check.** Passing the cosine floor is necessary but not sufficient because generic employment language can score highly against the search queries even when the occupation is unrelated to HR. Titles are therefore lowercased, repeated whitespace is collapsed, and the normalized title must contain at least one explicit HR-domain indicator: **“human resources,” standalone “HR,” “people development,” “CHRO,” “GPHR,” or “SPHR.”** This deterministic phrase check removes 15 additional high-similarity false positives and retains the exact 34-profile analytical cohort used throughout the project.
+
+The screening flow is therefore:
+
+```
+104 supplied rows
+→ 52 unique-title profiles
+→ 50 valid candidate profiles
+→ 49 with mean raw cosine >= 0.50
+→ 34 passing the HR-domain phrase check
+```
+
+After screening, occupational relevance `H` is retained as the explicit domain component of the analytical target: direct HR evidence is assigned `H = 1.0`, the retained adjacent “People Development” profile is assigned `H = 0.5`, and excluded profiles are `H = 0`. This preserves the existing 33 direct HR + 1 adjacent HR composition and leaves all downstream modelling, ranking, validation, feedback experiments, and reported findings unchanged.
+
+The table below audits the exact 16 excluded valid profiles. Fifteen exceed the 0.50 mean-cosine floor but fail the HR-domain phrase check; only ID 5 fails the cosine floor itself.
+
+| ID | Excluded profile | Cosine: aspiring HR | Cosine: seeking HR | Mean raw cosine | Exclusion reason |
+|---:|---|---:|---:|---:|---|
+| 92 | Seeking employment opportunities within Customer Service or Patient Care | 0.721563 | 0.774412 | 0.747988 | No HR-domain phrase |
+| 86 | Information Systems Specialist and Programmer with a love for data and organization. | 0.713928 | 0.716546 | 0.715237 | No HR-domain phrase |
+| 102 | Business Intelligence and Analytics at Travelers | 0.661170 | 0.669546 | 0.665358 | No HR-domain phrase |
+| 104 | Director Of Administration at Excellence Logging | 0.662886 | 0.655714 | 0.659300 | No HR-domain phrase |
+| 96 | Student at Indiana University Kokomo - Business Management - Retail Manager at Delphi Hardware and Paint | 0.654731 | 0.636046 | 0.645389 | No HR-domain phrase |
+| 90 | Undergraduate Research Assistant at Styczynski Lab | 0.657518 | 0.593483 | 0.625500 | No HR-domain phrase |
+| 93 | Admissions Representative at Community medical center long beach | 0.617549 | 0.616416 | 0.616983 | No HR-domain phrase |
+| 80 | Junior MES Engineer \| Information Systems | 0.603109 | 0.566694 | 0.584901 | No HR-domain phrase |
+| 87 | Bachelor of Science in Biology from Victoria University of Wellington | 0.576872 | 0.555975 | 0.566423 | No HR-domain phrase |
+| 91 | Lead Official at Western Illinois University | 0.542207 | 0.551748 | 0.546978 | No HR-domain phrase |
+| 85 | RRP Brand Portfolio Executive at JTI (Japan Tobacco International) | 0.553519 | 0.539471 | 0.546495 | No HR-domain phrase |
+| 2 | Native English Teacher at EPIK (English Program in Korea) | 0.588528 | 0.504233 | 0.546380 | No HR-domain phrase |
+| 98 | Student | 0.581556 | 0.492864 | 0.537210 | No HR-domain phrase |
+| 11 | Student at Chapman University | 0.560514 | 0.494678 | 0.527596 | No HR-domain phrase |
+| 95 | Student at Westfield State University | 0.514024 | 0.496274 | 0.505149 | No HR-domain phrase |
+| 5 | Advisory Board Member at Celal Bayar University | 0.503777 | 0.463202 | 0.483489 | Mean raw cosine < 0.50 |
+
+This audit also explains why cosine similarity is used as a **minimum semantic relevance floor rather than a complete occupational classifier**. Several non-HR profiles contain generic terms such as “seeking,” “employment,” “opportunities,” “specialist,” or “management,” which can be semantically close to the HR search language despite describing a different occupation. The phrase check therefore supplies the missing domain constraint without changing the semantic ranking logic used later within the retained HR cohort.
 
 ### 3.2 Analytical Target Construction
 
@@ -115,7 +154,7 @@ Fixed decision rule: adopt feedback retraining only if improves repeated held-ou
 
 ## 4. Results & Key Findings
 
-The analysis reduced original 104 supplied records to 34 HR-relevant candidates through duplicate removal, invalid-record exclusion, occupational screening, as detailed 3.1/3.2. **Figure 1** summarises progression `104 → 52 → 50 → 34`, showing final modelling cohort. Remaining results focus ranking and management feedback.
+The analysis reduced the original 104 supplied records to 34 HR-relevant candidates through duplicate removal, invalid-record exclusion, the 0.50 mean raw-cosine floor, and the HR-domain phrase check described in Sections 3.1/3.2. **Figure 1** summarises progression `104 → 52 → 50 → 34`, showing final modelling cohort. Remaining results focus ranking and management feedback.
 
 **Figure 1 — Candidate population flow**
 
@@ -157,7 +196,7 @@ Operationally, the screening rules should remove clearly irrelevant profiles, th
 
 The main limitation is that candidate fitness is not observed directly in the supplied data. The analytical ground truth `G` is constructed from occupational relevance `H` and semantic relevance `W`, so model performance measures how well the ranking reproduces this defensible proxy rather than confirmed hiring success, recruiter outcomes, or later employee performance. This also means the very strong `W`-only baseline must be interpreted carefully: `W` is itself one half of `G`, while 33 of the 34 retained candidates share the same `H = 1` value, making semantic similarity a dominant source of variation within the final HR cohort.
 
-The analysis is also limited to one role family and a relatively small final cohort of 34 HR-relevant candidates. The screening rules, search queries, and resulting ranking behaviour are therefore specific to this HR use case and should not be assumed to transfer directly to other occupations. In particular, the project does not establish a universal similarity cutoff for candidate eligibility; future roles should define and validate their own occupational rules, search language, and screening behaviour using role-specific evidence.
+The analysis is also limited to one role family and a relatively small final cohort of 34 HR-relevant candidates. The screening rules, search queries, and resulting ranking behaviour are therefore specific to this HR use case and should not be assumed to transfer directly to other occupations. The **0.50 mean raw-cosine cutoff is a project-specific conservative semantic floor**, not a universal eligibility threshold. Its role is to reject clearly weak semantic matches before the HR-domain phrase check; future roles should define and validate their own cutoff, search language, and domain indicators using role-specific evidence.
 
 Management feedback is also limited by the amount and type of preference information available in this experiment. The analysis tests one strict management ordering at several review depths, so the findings show that this particular feedback did not improve held-out ranking performance; they do not establish that management feedback can never add value. Future work should collect preference data across more reviewers, roles, and hiring cycles, then test whether repeated feedback produces stable signals that improve out-of-sample ranking before those signals are incorporated into production retraining.
 
